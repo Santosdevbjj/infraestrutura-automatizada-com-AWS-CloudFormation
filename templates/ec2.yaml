@@ -384,4 +384,213 @@ Resources:
         - Key: Version
           Value: "1.0" 
 
-          
+
+###############################################################################
+#
+# Amazon EC2 Instance
+#
+###############################################################################
+
+  EC2Instance:
+
+    Type: AWS::EC2::Instance
+
+    Properties:
+
+      InstanceType: !Ref InstanceType
+
+      ImageId: !Ref LatestAmiId
+
+      KeyName: !Ref KeyPairName
+
+      SubnetId:
+
+        Fn::ImportValue:
+
+          !Sub "${NetworkStackName}-PublicSubnet01"
+
+      SecurityGroupIds:
+
+        - !Ref EC2SecurityGroup
+
+      BlockDeviceMappings:
+
+        - DeviceName: /dev/xvda
+
+          Ebs:
+
+            VolumeType: !Ref VolumeType
+
+            VolumeSize: !Ref VolumeSize
+
+            DeleteOnTermination: true
+
+            Encrypted: true
+
+      MetadataOptions:
+
+        HttpEndpoint: enabled
+
+        HttpTokens: required
+
+        HttpPutResponseHopLimit: 2
+
+      Monitoring: true
+
+      UserData:
+
+        Fn::Base64: !Sub |
+
+          #!/bin/bash
+
+          dnf update -y
+
+          dnf install -y httpd git wget unzip
+
+          systemctl enable httpd
+
+          systemctl start httpd
+
+          TOKEN=$(curl -X PUT \
+          "http://169.254.169.254/latest/api/token" \
+          -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+
+          INSTANCE_ID=$(curl -H \
+          "X-aws-ec2-metadata-token: $TOKEN" \
+          http://169.254.169.254/latest/meta-data/instance-id)
+
+          AZ=$(curl -H \
+          "X-aws-ec2-metadata-token: $TOKEN" \
+          http://169.254.169.254/latest/meta-data/placement/availability-zone)
+
+          cat > /var/www/html/index.html << EOF
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+          <title>AWS CloudFormation Lab</title>
+
+          <style>
+
+          body {
+
+              font-family: Arial;
+
+              background:#232F3E;
+
+              color:white;
+
+              text-align:center;
+
+              margin-top:60px;
+
+          }
+
+          h1{
+
+              color:#FF9900;
+
+          }
+
+          </style>
+
+          </head>
+
+          <body>
+
+          <h1>Infraestrutura Automatizada com AWS CloudFormation</h1>
+
+          <h2>Servidor provisionado automaticamente</h2>
+
+          <p><b>Projeto:</b> ${ProjectName}</p>
+
+          <p><b>Ambiente:</b> ${Environment}</p>
+
+          <p><b>Instância:</b> $INSTANCE_ID</p>
+
+          <p><b>Availability Zone:</b> $AZ</p>
+
+          </body>
+
+          </html>
+
+          EOF
+
+      Tags:
+
+        - Key: Name
+          Value: !Ref InstanceName
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: Purpose
+          Value: Compute
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  ElasticIPAddress:
+
+    Type: AWS::EC2::EIP
+
+    Condition: CreateElasticIP
+
+    Properties:
+
+      Domain: vpc
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-ElasticIP"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# Elastic IP Association
+#
+###############################################################################
+
+  ElasticIPAssociation:
+
+    Type: AWS::EC2::EIPAssociation
+
+    Condition: CreateElasticIP
+
+    Properties:
+
+      AllocationId: !GetAtt ElasticIPAddress.AllocationId
+
+      InstanceId: !Ref EC2Instance 
+
+      
