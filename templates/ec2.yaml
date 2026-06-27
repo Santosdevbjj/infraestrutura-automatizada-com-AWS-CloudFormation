@@ -593,4 +593,284 @@ Resources:
 
       InstanceId: !Ref EC2Instance 
 
-      
+
+###############################################################################
+#
+# Outputs
+#
+# Os recursos exportados podem ser reutilizados por outras stacks utilizando
+# Fn::ImportValue, promovendo modularidade e reutilização da infraestrutura.
+#
+###############################################################################
+
+Outputs:
+
+###############################################################################
+#
+# EC2 Instance
+#
+###############################################################################
+
+  InstanceId:
+
+    Description: Identificador da instância EC2.
+
+    Value: !Ref EC2Instance
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-InstanceId"
+
+  InstancePublicIp:
+
+    Description: Endereço IP público da instância.
+
+    Value: !GetAtt EC2Instance.PublicIp
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PublicIP"
+
+  InstancePrivateIp:
+
+    Description: Endereço IP privado da instância.
+
+    Value: !GetAtt EC2Instance.PrivateIp
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PrivateIP"
+
+  InstanceAvailabilityZone:
+
+    Description: Availability Zone da instância.
+
+    Value: !GetAtt EC2Instance.AvailabilityZone
+
+###############################################################################
+#
+# Security Group
+#
+###############################################################################
+
+  SecurityGroupId:
+
+    Description: Security Group utilizado pela instância.
+
+    Value: !Ref EC2SecurityGroup
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-SecurityGroup"
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  ElasticIPAddress:
+
+    Condition: CreateElasticIP
+
+    Description: Elastic IP associado à instância.
+
+    Value: !Ref ElasticIPAddress
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-ElasticIP"
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  EnvironmentName:
+
+    Description: Ambiente utilizado.
+
+    Value: !Ref Environment
+
+###############################################################################
+#
+# Projeto
+#
+###############################################################################
+
+  Project:
+
+    Description: Nome do projeto.
+
+    Value: !Ref ProjectName
+
+###############################################################################
+#
+# Stack
+#
+###############################################################################
+
+  StackName:
+
+    Description: Nome da Stack.
+
+    Value: !Ref AWS::StackName
+
+  StackId:
+
+    Description: Identificador único da Stack.
+
+    Value: !Ref AWS::StackId
+
+  AWSRegion:
+
+    Description: Região AWS utilizada.
+
+    Value: !Ref AWS::Region
+
+  AWSAccount:
+
+    Description: Conta AWS responsável pela implantação.
+
+    Value: !Ref AWS::AccountId
+
+###############################################################################
+#
+# Template Summary
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Amazon EC2
+#
+# ✔ Security Group
+#
+# ✔ Volume Amazon EBS criptografado
+#
+# ✔ Bootstrap automático via UserData
+#
+# ✔ Apache HTTP Server
+#
+# ✔ Elastic IP (Opcional)
+#
+# ✔ IMDSv2 obrigatório
+#
+# ✔ CloudWatch Detailed Monitoring
+#
+# ✔ Tags padronizadas
+#
+# ✔ Outputs reutilizáveis
+#
+# ✔ Cross-Stack Exports
+#
+###############################################################################
+#
+# Arquitetura
+#
+#              CloudFormation
+#                     │
+#                     │
+#          ImportValue (Network Stack)
+#                     │
+#      ┌──────────────┴───────────────┐
+#      │                              │
+#      │             VPC              │
+#      │                              │
+#      │        Public Subnet         │
+#      │              │               │
+#      │      Security Group          │
+#      │              │               │
+#      │      Amazon EC2 Instance     │
+#      │              │               │
+#      │      Apache + UserData       │
+#      │              │               │
+#      │      Elastic IP (Opcional)   │
+#      └──────────────────────────────┘
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Infrastructure as Code
+#
+# ✔ Reutilização entre Stacks
+#
+# ✔ Cross-Stack References
+#
+# ✔ Segurança por padrão
+#
+# ✔ IMDSv2 obrigatório
+#
+# ✔ Criptografia do volume EBS
+#
+# ✔ Bootstrap automatizado
+#
+# ✔ Menor privilégio (Least Privilege)
+#
+# ✔ Governança através de Tags
+#
+# ✔ Templates modulares
+#
+# ✔ Compatível com AWS CLI
+#
+# ✔ Compatível com CloudFormation
+#
+# ✔ Compatível com cfn-lint
+#
+###############################################################################
+#
+# Próximas Evoluções
+#
+# • IAM Role para EC2
+#
+# • AWS Systems Manager Session Manager
+#
+# • Application Load Balancer
+#
+# • Auto Scaling Group
+#
+# • Launch Template
+#
+# • CloudWatch Agent
+#
+# • AWS Backup
+#
+# • Amazon Inspector
+#
+# • AWS Config
+#
+# • VPC Endpoints
+#
+###############################################################################
+#
+# Projeto
+#
+# Infraestrutura Automatizada com AWS CloudFormation
+#
+# Objetivos:
+#
+# • Demonstrar Infrastructure as Code (IaC)
+#
+# • Provisionamento automatizado
+#
+# • Templates reutilizáveis
+#
+# • Segurança
+#
+# • Governança
+#
+# • Escalabilidade
+#
+# • Automação
+#
+# • Documentação profissional
+#
+###############################################################################
+#
+# Fim do Template
+#
+############################################################################### 
+
+
