@@ -336,5 +336,28 @@ Resources:
 
       SubnetId: !Ref PublicSubnet 
 
+
+PublicSubnet2CIDR:
+
+  Type: String
+
+  Default: 10.0.2.0/24
+
+  Description: >
+    Bloco CIDR da segunda Sub-rede Pública.
+
+  AllowedPattern: >
+    ^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$
+
+AvailabilityZone2:
+
+  Type: AWS::EC2::AvailabilityZone::Name
+
+  Description: >
+    Segunda Zona de Disponibilidade utilizada pela Public Subnet 2. 
+
+
+
+    
       
           
