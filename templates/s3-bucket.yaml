@@ -1,0 +1,367 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - S3 Bucket
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Provisionar um bucket Amazon S3 seguindo boas práticas de
+                 segurança, governança e Infraestrutura como Código (IaC).
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração do Bucket"
+
+        Parameters:
+          - BucketName
+          - BucketVersioning
+          - Environment
+
+      - Label:
+          default: "Tags"
+
+        Parameters:
+          - ProjectName
+          - Owner
+
+    ParameterLabels:
+
+      BucketName:
+        default: "Nome do Bucket"
+
+      BucketVersioning:
+        default: "Versionamento"
+
+      Environment:
+        default: "Ambiente"
+
+      ProjectName:
+        default: "Projeto"
+
+      Owner:
+        default: "Responsável"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Author: Sérgio Luiz dos Santos
+
+    IaC: AWS CloudFormation
+
+    Template: templates/s3-bucket.yaml
+
+    Version: "1.0"
+
+    LastUpdate: "2026"
+
+Parameters:
+
+  BucketName:
+
+    Type: String
+
+    Description: >
+      Nome globalmente único do bucket S3.
+
+    MinLength: 3
+
+    MaxLength: 63
+
+    AllowedPattern: "^[a-z0-9.-]+$"
+
+    ConstraintDescription: >
+      Utilize apenas letras minúsculas, números, ponto e hífen.
+
+  BucketVersioning:
+
+    Type: String
+
+    Description: >
+      Habilita ou desabilita o versionamento.
+
+    Default: Enabled
+
+    AllowedValues:
+      - Enabled
+      - Suspended
+
+  Environment:
+
+    Type: String
+
+    Description: Ambiente onde o recurso será criado.
+
+    Default: Development
+
+    AllowedValues:
+      - Development
+      - Homologation
+      - Production
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+    Description: Nome do projeto.
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+    Description: Responsável pelos recursos.
+
+Conditions:
+
+  EnableVersioning: !Equals
+    - !Ref BucketVersioning
+    - Enabled
+
+Resources:
+
+  ###########################################################
+  #
+  # Amazon S3 Bucket
+  #
+  ###########################################################
+
+  S3Bucket:
+
+    Type: AWS::S3::Bucket
+
+    DeletionPolicy: Retain
+
+    UpdateReplacePolicy: Retain
+
+    Properties:
+
+      BucketName: !Ref BucketName
+
+      VersioningConfiguration:
+
+        Status: !If
+          - EnableVersioning
+          - Enabled
+          - Suspended
+
+      BucketEncryption:
+
+        ServerSideEncryptionConfiguration:
+
+          - ServerSideEncryptionByDefault:
+
+              SSEAlgorithm: AES256
+
+      PublicAccessBlockConfiguration:
+
+        BlockPublicAcls: true
+
+        IgnorePublicAcls: true
+
+        BlockPublicPolicy: true
+
+        RestrictPublicBuckets: true
+
+      OwnershipControls:
+
+        Rules:
+
+          - ObjectOwnership: BucketOwnerEnforced
+
+      Tags:
+
+        - Key: Name
+          Value: !Ref BucketName
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+        - Key: Purpose
+          Value: Storage
+
+        - Key: Security
+          Value: EncryptionEnabled 
+
+
+  ###########################################################
+  #
+  # Bucket Policy
+  # Força todas as conexões utilizando HTTPS.
+  #
+  ###########################################################
+
+  S3BucketPolicy:
+
+    Type: AWS::S3::BucketPolicy
+
+    Properties:
+
+      Bucket: !Ref S3Bucket
+
+      PolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+          - Sid: DenyInsecureTransport
+
+            Effect: Deny
+
+            Principal: "*"
+
+            Action: "s3:*"
+
+            Resource:
+
+              - !Sub arn:aws:s3:::${S3Bucket}
+
+              - !Sub arn:aws:s3:::${S3Bucket}/*
+
+            Condition:
+
+              Bool:
+
+                aws:SecureTransport: false
+
+Outputs:
+
+  ###########################################################
+  #
+  # Stack Outputs
+  #
+  ###########################################################
+
+  BucketName:
+
+    Description: Nome do Bucket S3 criado.
+
+    Value: !Ref S3Bucket
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-BucketName"
+
+  BucketArn:
+
+    Description: Amazon Resource Name (ARN) do Bucket.
+
+    Value: !GetAtt S3Bucket.Arn
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-BucketArn"
+
+  BucketDomainName:
+
+    Description: Nome DNS do Bucket.
+
+    Value: !GetAtt S3Bucket.DomainName
+
+  BucketRegionalDomainName:
+
+    Description: Nome DNS Regional do Bucket.
+
+    Value: !GetAtt S3Bucket.RegionalDomainName
+
+  BucketWebsiteURL:
+
+    Description: >
+      URL do Website do Bucket.
+      Será utilizada somente caso o Website Hosting seja habilitado futuramente.
+
+    Value: !GetAtt S3Bucket.WebsiteURL
+
+  VersioningStatus:
+
+    Description: Status do Versionamento.
+
+    Value: !Ref BucketVersioning
+
+  Environment:
+
+    Description: Ambiente utilizado na implantação.
+
+    Value: !Ref Environment
+
+  Project:
+
+    Description: Nome do Projeto.
+
+    Value: !Ref ProjectName
+
+  TemplateName:
+
+    Description: Template CloudFormation utilizado.
+
+    Value: templates/s3-bucket.yaml
+
+  StackId:
+
+    Description: Identificador da Stack.
+
+    Value: !Ref AWS::StackId
+
+  StackName:
+
+    Description: Nome da Stack.
+
+    Value: !Ref AWS::StackName
+
+################################################################################
+#
+# Fim do Template
+#
+# Este template foi desenvolvido para demonstrar boas práticas de
+# Infrastructure as Code (IaC) utilizando AWS CloudFormation.
+#
+# Recursos implementados:
+#
+# ✔ Bucket S3 parametrizado
+# ✔ Criptografia Server-Side (AES-256)
+# ✔ Versionamento configurável
+# ✔ Bloqueio completo de acesso público
+# ✔ Object Ownership configurado
+# ✔ Bucket Policy exigindo HTTPS
+# ✔ Tags padronizadas para governança
+# ✔ Outputs reutilizáveis
+# ✔ Compatível com AWS CLI
+# ✔ Compatível com CloudFormation Validate Template
+# ✔ Compatível com cfn-lint
+#
+################################################################################  
+
+
+          
