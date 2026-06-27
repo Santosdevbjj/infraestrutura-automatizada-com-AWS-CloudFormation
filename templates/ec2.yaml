@@ -1,0 +1,264 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - Amazon EC2
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Provisionar uma instância Amazon EC2 reutilizando a
+                 infraestrutura de rede criada pelo template vpc.yaml,
+                 seguindo boas práticas de Infrastructure as Code (IaC),
+                 segurança, governança e automação.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração da Instância"
+
+        Parameters:
+          - InstanceName
+          - InstanceType
+          - KeyPairName
+
+      - Label:
+          default: "Armazenamento"
+
+        Parameters:
+          - VolumeSize
+          - VolumeType
+
+      - Label:
+          default: "Infraestrutura"
+
+        Parameters:
+          - NetworkStackName
+
+      - Label:
+          default: "Ambiente"
+
+        Parameters:
+          - Environment
+          - ProjectName
+          - Owner
+
+    ParameterLabels:
+
+      InstanceName:
+        default: "Nome da Instância"
+
+      InstanceType:
+        default: "Tipo da Instância"
+
+      KeyPairName:
+        default: "Key Pair"
+
+      VolumeSize:
+        default: "Tamanho do Disco (GB)"
+
+      VolumeType:
+        default: "Tipo do Volume"
+
+      NetworkStackName:
+        default: "Nome da Stack de Rede"
+
+      Environment:
+        default: "Ambiente"
+
+      ProjectName:
+        default: "Projeto"
+
+      Owner:
+        default: "Responsável"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Template: templates/ec2.yaml
+
+    IaC: AWS CloudFormation
+
+    Version: "1.0"
+
+    LastUpdate: "2026"
+
+Parameters:
+
+###############################################################################
+#
+# Infraestrutura
+#
+###############################################################################
+
+  NetworkStackName:
+
+    Type: String
+
+    Description: >
+      Nome da Stack responsável pela infraestrutura de rede (vpc.yaml).
+
+###############################################################################
+#
+# EC2
+#
+###############################################################################
+
+  InstanceName:
+
+    Type: String
+
+    Default: CloudFormation-EC2
+
+    Description: Nome lógico da instância.
+
+  InstanceType:
+
+    Type: String
+
+    Default: t3.micro
+
+    AllowedValues:
+
+      - t2.micro
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+
+    Description: Tipo da instância Amazon EC2.
+
+  KeyPairName:
+
+    Type: AWS::EC2::KeyPair::KeyName
+
+    Description: >
+      Nome do AWS Key Pair utilizado para acesso SSH.
+
+###############################################################################
+#
+# Storage
+#
+###############################################################################
+
+  VolumeSize:
+
+    Type: Number
+
+    Default: 20
+
+    MinValue: 8
+
+    MaxValue: 200
+
+    Description: >
+      Tamanho do volume EBS em GB.
+
+  VolumeType:
+
+    Type: String
+
+    Default: gp3
+
+    AllowedValues:
+
+      - gp3
+      - gp2
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+###############################################################################
+#
+# AMI
+#
+# Utiliza o Parameter Store para sempre obter a versão estável mais recente
+# do Amazon Linux, evitando AMIs fixas no template.
+#
+###############################################################################
+
+  LatestAmiId:
+
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  AllocateElasticIP:
+
+    Type: String
+
+    Default: "false"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+###############################################################################
+#
+# Conditions
+#
+###############################################################################
+
+Conditions:
+
+  CreateElasticIP: !Equals
+
+    - !Ref AllocateElasticIP
+
+    - "true"
+
+  IsProduction: !Equals
+
+    - !Ref Environment
+
+    - Production
+
+  IsDevelopment: !Equals
+
+    - !Ref Environment
+
+    - Development 
+
+    
