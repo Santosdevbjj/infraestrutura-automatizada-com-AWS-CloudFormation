@@ -1,0 +1,340 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - Virtual Private Cloud (VPC)
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Provisionar uma Virtual Private Cloud (VPC) utilizando
+                 Infrastructure as Code (IaC), seguindo boas práticas de
+                 segurança, governança e padronização recomendadas pela AWS.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração da Rede"
+
+        Parameters:
+          - VpcCIDR
+          - PublicSubnetCIDR
+          - AvailabilityZone
+
+      - Label:
+          default: "Ambiente"
+
+        Parameters:
+          - Environment
+          - ProjectName
+          - Owner
+
+    ParameterLabels:
+
+      VpcCIDR:
+        default: "CIDR da VPC"
+
+      PublicSubnetCIDR:
+        default: "CIDR da Sub-rede Pública"
+
+      AvailabilityZone:
+        default: "Zona de Disponibilidade"
+
+      Environment:
+        default: "Ambiente"
+
+      ProjectName:
+        default: "Projeto"
+
+      Owner:
+        default: "Responsável"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Author: Sérgio Luiz dos Santos
+
+    IaC: AWS CloudFormation
+
+    Template: templates/vpc.yaml
+
+    Version: "1.0"
+
+Parameters:
+
+  VpcCIDR:
+
+    Type: String
+
+    Default: 10.0.0.0/16
+
+    Description: >
+      Bloco CIDR utilizado para a Virtual Private Cloud.
+
+    AllowedPattern: >
+      ^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$
+
+  PublicSubnetCIDR:
+
+    Type: String
+
+    Default: 10.0.1.0/24
+
+    Description: >
+      Bloco CIDR da Sub-rede Pública.
+
+    AllowedPattern: >
+      ^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[1-2][0-9]|3[0-2])$
+
+  AvailabilityZone:
+
+    Type: AWS::EC2::AvailabilityZone::Name
+
+    Description: >
+      Zona de disponibilidade onde a Subnet será criada.
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+Conditions:
+
+  IsProduction: !Equals
+    - !Ref Environment
+    - Production
+
+Resources:
+
+###############################################################################
+#
+# Virtual Private Cloud
+#
+###############################################################################
+
+  VPC:
+
+    Type: AWS::EC2::VPC
+
+    Properties:
+
+      CidrBlock: !Ref VpcCIDR
+
+      EnableDnsSupport: true
+
+      EnableDnsHostnames: true
+
+      InstanceTenancy: default
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-VPC"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: Network
+          Value: Primary
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+        - Key: Purpose
+          Value: Infrastructure 
+
+          ###############################################################################
+#
+# Internet Gateway
+#
+###############################################################################
+
+  InternetGateway:
+
+    Type: AWS::EC2::InternetGateway
+
+    Properties:
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-IGW"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Owner
+          Value: !Ref Owner
+
+###############################################################################
+#
+# Internet Gateway Attachment
+#
+###############################################################################
+
+  InternetGatewayAttachment:
+
+    Type: AWS::EC2::VPCGatewayAttachment
+
+    Properties:
+
+      InternetGatewayId: !Ref InternetGateway
+
+      VpcId: !Ref VPC
+
+###############################################################################
+#
+# Public Subnet
+#
+###############################################################################
+
+  PublicSubnet:
+
+    Type: AWS::EC2::Subnet
+
+    Properties:
+
+      VpcId: !Ref VPC
+
+      CidrBlock: !Ref PublicSubnetCIDR
+
+      AvailabilityZone: !Ref AvailabilityZone
+
+      MapPublicIpOnLaunch: true
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-PublicSubnet"
+
+        - Key: Tier
+          Value: Public
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Owner
+          Value: !Ref Owner
+
+###############################################################################
+#
+# Public Route Table
+#
+###############################################################################
+
+  PublicRouteTable:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref VPC
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-PublicRouteTable"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# Default Route
+#
+###############################################################################
+
+  DefaultInternetRoute:
+
+    Type: AWS::EC2::Route
+
+    DependsOn:
+
+      - InternetGatewayAttachment
+
+    Properties:
+
+      RouteTableId: !Ref PublicRouteTable
+
+      DestinationCidrBlock: 0.0.0.0/0
+
+      GatewayId: !Ref InternetGateway
+
+###############################################################################
+#
+# Route Table Association
+#
+###############################################################################
+
+  PublicSubnetRouteTableAssociation:
+
+    Type: AWS::EC2::SubnetRouteTableAssociation
+
+    Properties:
+
+      RouteTableId: !Ref PublicRouteTable
+
+      SubnetId: !Ref PublicSubnet 
+
+      
+          
