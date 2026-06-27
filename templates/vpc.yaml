@@ -357,6 +357,269 @@ AvailabilityZone2:
     Segunda Zona de Disponibilidade utilizada pela Public Subnet 2. 
 
 
+###############################################################################
+#
+# Outputs
+#
+# Os Outputs permitem que outras stacks reutilizem os recursos desta VPC
+# através de ImportValue, promovendo modularidade e reutilização.
+#
+###############################################################################
+
+Outputs:
+
+  #########################################################################
+  # VPC
+  #########################################################################
+
+  VPCId:
+
+    Description: Identificador da Virtual Private Cloud.
+
+    Value: !Ref VPC
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-VPCId"
+
+  VPCCidr:
+
+    Description: Bloco CIDR da VPC.
+
+    Value: !Ref VpcCIDR
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-VPCCidr"
+
+  #########################################################################
+  # Public Subnets
+  #########################################################################
+
+  PublicSubnetId:
+
+    Description: Identificador da primeira Public Subnet.
+
+    Value: !Ref PublicSubnet
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PublicSubnet01"
+
+  PublicSubnet2Id:
+
+    Description: Identificador da segunda Public Subnet.
+
+    Value: !Ref PublicSubnet2
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PublicSubnet02"
+
+  #########################################################################
+  # Internet Gateway
+  #########################################################################
+
+  InternetGatewayId:
+
+    Description: Internet Gateway associado à VPC.
+
+    Value: !Ref InternetGateway
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-InternetGateway"
+
+  #########################################################################
+  # Route Table
+  #########################################################################
+
+  PublicRouteTableId:
+
+    Description: Route Table utilizada pelas Public Subnets.
+
+    Value: !Ref PublicRouteTable
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PublicRouteTable"
+
+  #########################################################################
+  # Network ACL
+  #########################################################################
+
+  PublicNetworkAclId:
+
+    Description: Network ACL aplicada às Public Subnets.
+
+    Value: !Ref PublicNetworkAcl
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-PublicNetworkAcl"
+
+  #########################################################################
+  # Ambiente
+  #########################################################################
+
+  EnvironmentName:
+
+    Description: Ambiente utilizado durante a implantação.
+
+    Value: !Ref Environment
+
+  #########################################################################
+  # Projeto
+  #########################################################################
+
+  Project:
+
+    Description: Nome do Projeto.
+
+    Value: !Ref ProjectName
+
+  #########################################################################
+  # Stack
+  #########################################################################
+
+  StackName:
+
+    Description: Nome da Stack.
+
+    Value: !Ref AWS::StackName
+
+  StackId:
+
+    Description: Identificador único da Stack.
+
+    Value: !Ref AWS::StackId
+
+  Region:
+
+    Description: Região AWS utilizada.
+
+    Value: !Ref AWS::Region
+
+  AccountId:
+
+    Description: Conta AWS onde a Stack foi implantada.
+
+    Value: !Ref AWS::AccountId
+
+###############################################################################
+#
+# Template Summary
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Virtual Private Cloud (VPC)
+#
+# ✔ Internet Gateway
+#
+# ✔ Gateway Attachment
+#
+# ✔ Public Route Table
+#
+# ✔ Default Route (0.0.0.0/0)
+#
+# ✔ Public Subnet 01
+#
+# ✔ Public Subnet 02
+#
+# ✔ Network ACL
+#
+# ✔ Network ACL Associations
+#
+# ✔ Tags padronizadas para Governança
+#
+# ✔ Outputs reutilizáveis
+#
+# ✔ Cross-Stack Exports
+#
+###############################################################################
+#
+# Compatibilidade
+#
+# ✔ AWS CloudFormation
+#
+# ✔ AWS CLI
+#
+# ✔ cfn-lint
+#
+# ✔ CloudFormation Validate Template
+#
+###############################################################################
+#
+# Próximas Evoluções
+#
+# • Private Subnets
+#
+# • NAT Gateway
+#
+# • Elastic IP
+#
+# • Bastion Host
+#
+# • Application Load Balancer
+#
+# • Auto Scaling Group
+#
+# • VPC Flow Logs
+#
+# • Endpoints para Amazon S3
+#
+# • Endpoints para DynamoDB
+#
+# • Transit Gateway
+#
+###############################################################################
+#
+# Arquitetura
+#
+#                       Internet
+#                           │
+#                    Internet Gateway
+#                           │
+#            ┌──────────────┴──────────────┐
+#            │                             │
+#            │            VPC              │
+#            │        10.0.0.0/16          │
+#            │                             │
+#            │     Public Route Table      │
+#            │          │         │         │
+#            │          │         │         │
+#            │      Public      Public      │
+#            │      Subnet A    Subnet B    │
+#            │   10.0.1.0/24 10.0.2.0/24    │
+#            │                             │
+#            └─────────────────────────────┘
+#
+###############################################################################
+#
+# Desenvolvido para o projeto:
+#
+# Infraestrutura Automatizada com AWS CloudFormation
+#
+# Repositório:
+#
+# infraestrutura-automatizada-com-AWS-CloudFormation
+#
+# Objetivo:
+#
+# Demonstrar a implementação de Infrastructure as Code (IaC)
+# utilizando AWS CloudFormation com foco em:
+#
+# • Automação
+# • Padronização
+# • Segurança
+# • Governança
+# • Reutilização
+# • Escalabilidade
+#
+############################################################################### 
+
 
     
       
