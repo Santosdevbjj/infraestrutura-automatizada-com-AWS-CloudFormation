@@ -261,4 +261,127 @@ Conditions:
 
     - Development 
 
-    
+
+
+
+###############################################################################
+#
+# Security Group
+#
+# Firewall Stateful responsável por controlar o tráfego da instância EC2.
+# O acesso SSH é parametrizado para seguir o princípio do menor privilégio.
+#
+###############################################################################
+
+Resources:
+
+  #############################################################
+  # Security Group
+  #############################################################
+
+  EC2SecurityGroup:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupDescription: >
+        Security Group utilizado pela instância EC2 criada por este template.
+
+      GroupName: !Sub "${ProjectName}-EC2-SG"
+
+      VpcId:
+
+        Fn::ImportValue:
+
+          !Sub "${NetworkStackName}-VPCId"
+
+      SecurityGroupIngress:
+
+        #######################################################
+        # SSH
+        #######################################################
+
+        - Description: SSH
+
+          IpProtocol: tcp
+
+          FromPort: 22
+
+          ToPort: 22
+
+          CidrIp: !Ref AllowedSSHCidr
+
+        #######################################################
+        # HTTP
+        #######################################################
+
+        - Description: HTTP
+
+          IpProtocol: tcp
+
+          FromPort: 80
+
+          ToPort: 80
+
+          CidrIp: 0.0.0.0/0
+
+        #######################################################
+        # HTTPS
+        #######################################################
+
+        - Description: HTTPS
+
+          IpProtocol: tcp
+
+          FromPort: 443
+
+          ToPort: 443
+
+          CidrIp: 0.0.0.0/0
+
+      SecurityGroupEgress:
+
+        #######################################################
+        # Saída para Internet
+        #######################################################
+
+        - Description: Allow All Outbound
+
+          IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-EC2-SG"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: Purpose
+          Value: EC2 Security
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+        - Key: Version
+          Value: "1.0" 
+
+          
