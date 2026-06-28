@@ -544,3 +544,317 @@ Parameters:
 
 Mappings: 
 
+###############################################################################
+#
+# Mappings
+#
+###############################################################################
+
+  AWSRegionAMI:
+
+    us-east-1:
+      AMI: ami-xxxxxxxxxxxxxxxxx
+
+    us-east-2:
+      AMI: ami-xxxxxxxxxxxxxxxxx
+
+    us-west-2:
+      AMI: ami-xxxxxxxxxxxxxxxxx
+
+    sa-east-1:
+      AMI: ami-xxxxxxxxxxxxxxxxx
+
+    eu-west-1:
+      AMI: ami-xxxxxxxxxxxxxxxxx
+
+###############################################################################
+#
+# Environment Configuration
+#
+###############################################################################
+
+  EnvironmentConfig:
+
+    Development:
+
+      InstanceType: t3.micro
+
+      DetailedMonitoring: "false"
+
+      BackupRetention: "7"
+
+    Homologation:
+
+      InstanceType: t3.small
+
+      DetailedMonitoring: "true"
+
+      BackupRetention: "14"
+
+    Production:
+
+      InstanceType: t3.medium
+
+      DetailedMonitoring: "true"
+
+      BackupRetention: "30"
+
+###############################################################################
+#
+# S3 Configuration
+#
+###############################################################################
+
+  S3Defaults:
+
+    Default:
+
+      Encryption: AES256
+
+      Versioning: Enabled
+
+      PublicAccessBlock: Enabled
+
+###############################################################################
+#
+# Tag Defaults
+#
+###############################################################################
+
+  TagDefaults:
+
+    Default:
+
+      ManagedBy: CloudFormation
+
+      Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+      IaC: AWS-CloudFormation
+
+###############################################################################
+#
+# Conditions
+#
+###############################################################################
+
+Conditions:
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  IsDevelopment:
+
+    !Equals
+      - !Ref Environment
+      - Development
+
+  IsHomologation:
+
+    !Equals
+      - !Ref Environment
+      - Homologation
+
+  IsProduction:
+
+    !Equals
+      - !Ref Environment
+      - Production
+
+###############################################################################
+#
+# Recursos Opcionais
+#
+###############################################################################
+
+  CreateElasticIP:
+
+    !Equals
+      - !Ref EnableElasticIP
+      - "true"
+
+  EnableVersioningCondition:
+
+    !Equals
+      - !Ref EnableVersioning
+      - "true"
+
+  EnableEncryptionCondition:
+
+    !Equals
+      - !Ref EnableEncryption
+      - "true"
+
+  EnableHTTPCondition:
+
+    !Equals
+      - !Ref EnableHTTP
+      - "true"
+
+  EnableHTTPSCondition:
+
+    !Equals
+      - !Ref EnableHTTPS
+      - "true"
+
+  EnableICMPCondition:
+
+    !Equals
+      - !Ref EnableICMP
+      - "true"
+
+  EnableCloudWatchCondition:
+
+    !Equals
+      - !Ref EnableCloudWatch
+      - "true"
+
+  EnableSSMCondition:
+
+    !Equals
+      - !Ref EnableSSM
+      - "true"
+
+  EnableDetailedMonitoringCondition:
+
+    !Equals
+      - !Ref EnableDetailedMonitoring
+      - "true"
+
+###############################################################################
+#
+# Bucket
+#
+###############################################################################
+
+  AutoGenerateBucketName:
+
+    !Equals
+      - !Ref BucketName
+      - ""
+
+###############################################################################
+#
+# Rules
+#
+###############################################################################
+
+Rules:
+
+###############################################################################
+#
+# Regras para Ambiente
+#
+###############################################################################
+
+  EnvironmentValidation:
+
+    Assertions:
+
+      - Assert:
+
+          !Contains
+
+            - - Development
+              - Homologation
+              - Production
+
+            - !Ref Environment
+
+        AssertDescription: >
+          O ambiente deve ser Development,
+          Homologation ou Production.
+
+###############################################################################
+#
+# Regras para SSH
+#
+###############################################################################
+
+  SSHValidation:
+
+    Assertions:
+
+      - Assert:
+
+          !Not
+
+            - !Equals
+
+                - !Ref SSHLocation
+                - ""
+
+        AssertDescription: >
+          Informe um bloco CIDR válido para acesso SSH.
+
+###############################################################################
+#
+# Regras para Key Pair
+#
+###############################################################################
+
+  KeyPairValidation:
+
+    Assertions:
+
+      - Assert:
+
+          !Not
+
+            - !Equals
+
+                - !Ref KeyPairName
+                - ""
+
+        AssertDescription: >
+          É obrigatório informar um AWS EC2 Key Pair.
+
+###############################################################################
+#
+# Regras para Projeto
+#
+###############################################################################
+
+  ProjectValidation:
+
+    Assertions:
+
+      - Assert:
+
+          !Not
+
+            - !Equals
+
+                - !Ref ProjectName
+                - ""
+
+        AssertDescription: >
+          O nome do projeto não pode ser vazio.
+
+###############################################################################
+#
+# Boas Práticas
+#
+###############################################################################
+#
+# Este template utiliza:
+#
+# ✔ Mappings para desacoplar configurações por região.
+# ✔ Conditions para provisionamento condicional.
+# ✔ Rules para validação antes da criação da Stack.
+# ✔ Configuração automática por ambiente.
+# ✔ Seleção dinâmica de recursos.
+# ✔ Reutilização máxima do template.
+#
+###############################################################################
+#
+# Próxima seção
+#
+###############################################################################
+
+Resources: 
+
+
+
