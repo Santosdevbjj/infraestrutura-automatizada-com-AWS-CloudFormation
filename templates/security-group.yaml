@@ -1,0 +1,295 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - Security Group Reutilizável
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Provisionar um Amazon EC2 Security Group reutilizável,
+                 desacoplado da camada de computação, seguindo as boas
+                 práticas de segurança, governança e Infrastructure as Code.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração do Security Group"
+
+        Parameters:
+
+          - SecurityGroupName
+          - SecurityGroupDescription
+
+      - Label:
+          default: "Integração com Rede"
+
+        Parameters:
+
+          - NetworkStackName
+
+      - Label:
+          default: "Regras de Entrada"
+
+        Parameters:
+
+          - SSHLocation
+          - EnableHTTP
+          - EnableHTTPS
+          - EnableICMP
+
+      - Label:
+          default: "Ambiente"
+
+        Parameters:
+
+          - Environment
+          - ProjectName
+          - Owner
+
+    ParameterLabels:
+
+      SecurityGroupName:
+        default: "Nome do Security Group"
+
+      SecurityGroupDescription:
+        default: "Descrição"
+
+      NetworkStackName:
+        default: "Stack da VPC"
+
+      SSHLocation:
+        default: "CIDR permitido para SSH"
+
+      EnableHTTP:
+        default: "Habilitar HTTP"
+
+      EnableHTTPS:
+        default: "Habilitar HTTPS"
+
+      EnableICMP:
+        default: "Habilitar ICMP"
+
+      Environment:
+        default: "Ambiente"
+
+      ProjectName:
+        default: "Projeto"
+
+      Owner:
+        default: "Responsável"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Template: templates/security-group.yaml
+
+    IaC: AWS CloudFormation
+
+    Version: "1.0"
+
+    LastUpdate: "2026"
+
+###############################################################################
+#
+# Parameters
+#
+###############################################################################
+
+Parameters:
+
+###############################################################################
+#
+# Security Group
+#
+###############################################################################
+
+  SecurityGroupName:
+
+    Type: String
+
+    Default: CloudFormationSecurityGroup
+
+    Description: >
+      Nome do Security Group.
+
+    AllowedPattern: "^[a-zA-Z0-9+=,.@_-]{1,255}$"
+
+  SecurityGroupDescription:
+
+    Type: String
+
+    Default: Security Group para instâncias EC2
+
+    Description: >
+      Descrição do Security Group.
+
+###############################################################################
+#
+# Rede
+#
+###############################################################################
+
+  NetworkStackName:
+
+    Type: String
+
+    Default: network-stack
+
+    Description: >
+      Nome da Stack responsável pela VPC. Utilizado para importar
+      o VpcId através de Cross-Stack References.
+
+###############################################################################
+#
+# Regras
+#
+###############################################################################
+
+  SSHLocation:
+
+    Type: String
+
+    Default: 0.0.0.0/0
+
+    Description: >
+      Faixa CIDR autorizada para conexão SSH.
+
+    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+
+  EnableHTTP:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+  EnableHTTPS:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+  EnableICMP:
+
+    Type: String
+
+    Default: "false"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+###############################################################################
+#
+# Conditions
+#
+###############################################################################
+
+Conditions:
+
+###############################################################################
+#
+# Protocolos
+#
+###############################################################################
+
+  CreateHTTPRule:
+
+    !Equals
+
+      - !Ref EnableHTTP
+
+      - "true"
+
+  CreateHTTPSRule:
+
+    !Equals
+
+      - !Ref EnableHTTPS
+
+      - "true"
+
+  CreateICMPRule:
+
+    !Equals
+
+      - !Ref EnableICMP
+
+      - "true"
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  IsProduction:
+
+    !Equals
+
+      - !Ref Environment
+
+      - Production
+
+  IsDevelopment:
+
+    !Equals
+
+      - !Ref Environment
+
+      - Development
+
+###############################################################################
+#
+# Resources
+#
+###############################################################################
