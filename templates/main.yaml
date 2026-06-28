@@ -281,3 +281,182 @@ Conditions:
 # Resources
 #
 ###############################################################################
+
+###############################################################################
+#
+# Network Stack
+#
+# Provisiona:
+# • VPC
+# • Internet Gateway
+# • Route Tables
+# • Public Subnets
+# • Network ACL
+#
+###############################################################################
+
+  NetworkStack:
+
+    Type: AWS::CloudFormation::Stack
+
+    Properties:
+
+      TemplateURL:
+
+        !Sub >
+          https://${TemplateBucket}.s3.amazonaws.com/${TemplatePrefix}/vpc.yaml
+
+      Parameters:
+
+        ProjectName: !Ref ProjectName
+
+        Environment: !Ref Environment
+
+        Owner: !Ref Owner
+
+        VPCCidr: !Ref VPCCidr
+
+        PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
+
+        PublicSubnet2CIDR: !Ref PublicSubnet2CIDR
+
+      Tags:
+
+        - Key: Name
+          Value: NetworkStack
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# Security Stack
+#
+# Provisiona:
+# • Security Groups
+# • Regras Ingress
+# • Regras Egress
+#
+###############################################################################
+
+  SecurityStack:
+
+    Type: AWS::CloudFormation::Stack
+
+    DependsOn:
+
+      - NetworkStack
+
+    Properties:
+
+      TemplateURL:
+
+        !Sub >
+          https://${TemplateBucket}.s3.amazonaws.com/${TemplatePrefix}/security-group.yaml
+
+      Parameters:
+
+        ProjectName: !Ref ProjectName
+
+        Environment: !Ref Environment
+
+        Owner: !Ref Owner
+
+        NetworkStackName:
+
+          !GetAtt NetworkStack.Outputs.StackName
+
+        SecurityGroupName: CloudFormationSecurityGroup
+
+        SecurityGroupDescription: >
+          Security Group reutilizável para workloads EC2
+
+        SSHLocation: !Ref SSHLocation
+
+        EnableHTTP: "true"
+
+        EnableHTTPS: "true"
+
+        EnableICMP: "false"
+
+      Tags:
+
+        - Key: Name
+          Value: SecurityStack
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# IAM Stack
+#
+# Provisiona:
+# • IAM Role
+# • Instance Profile
+# • Customer Managed Policy
+#
+###############################################################################
+
+  IAMStack:
+
+    Type: AWS::CloudFormation::Stack
+
+    DependsOn:
+
+      - NetworkStack
+
+    Properties:
+
+      TemplateURL:
+
+        !Sub >
+          https://${TemplateBucket}.s3.amazonaws.com/${TemplatePrefix}/iam-role.yaml
+
+      Parameters:
+
+        ProjectName: !Ref ProjectName
+
+        Environment: !Ref Environment
+
+        Owner: !Ref Owner
+
+        RoleName: CloudFormationEC2Role
+
+        InstanceProfileName: CloudFormationInstanceProfile
+
+        EnableSSM: "true"
+
+        EnableCloudWatch: "true"
+
+        EnableS3ReadOnly: "true"
+
+      Tags:
+
+        - Key: Name
+          Value: IAMStack
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# Próximos Nested Stacks
+#
+# Parte 3
+#
+# • S3 Stack
+# • EC2 Stack
+#
+############################################################################### 
+
+
