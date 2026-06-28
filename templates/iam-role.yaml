@@ -529,4 +529,274 @@ Resources:
 
 
 
-        
+        ###############################################################################
+#
+# Outputs
+#
+# Os recursos exportados podem ser reutilizados por outras stacks utilizando
+# Fn::ImportValue.
+#
+###############################################################################
+
+Outputs:
+
+###############################################################################
+#
+# IAM Role
+#
+###############################################################################
+
+  IAMRoleName:
+
+    Description: Nome da IAM Role criada.
+
+    Value: !Ref EC2IAMRole
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-RoleName"
+
+  IAMRoleArn:
+
+    Description: ARN da IAM Role.
+
+    Value: !GetAtt EC2IAMRole.Arn
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-RoleArn"
+
+###############################################################################
+#
+# Instance Profile
+#
+###############################################################################
+
+  InstanceProfileName:
+
+    Description: Nome do Instance Profile.
+
+    Value: !Ref EC2InstanceProfile
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-InstanceProfile"
+
+  InstanceProfileArn:
+
+    Description: ARN do Instance Profile.
+
+    Value: !GetAtt EC2InstanceProfile.Arn
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-InstanceProfileArn"
+
+###############################################################################
+#
+# Managed Policy
+#
+###############################################################################
+
+  CustomManagedPolicyArn:
+
+    Description: ARN da Customer Managed Policy.
+
+    Value: !Ref EC2CustomPolicy
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-CustomPolicyArn"
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  EnvironmentName:
+
+    Description: Ambiente utilizado.
+
+    Value: !Ref Environment
+
+###############################################################################
+#
+# Projeto
+#
+###############################################################################
+
+  Project:
+
+    Description: Nome do projeto.
+
+    Value: !Ref ProjectName
+
+###############################################################################
+#
+# Stack
+#
+###############################################################################
+
+  StackName:
+
+    Description: Nome da Stack.
+
+    Value: !Ref AWS::StackName
+
+  StackId:
+
+    Description: Identificador único da Stack.
+
+    Value: !Ref AWS::StackId
+
+  AWSRegion:
+
+    Description: Região AWS utilizada.
+
+    Value: !Ref AWS::Region
+
+  AWSAccount:
+
+    Description: Conta AWS responsável pela implantação.
+
+    Value: !Ref AWS::AccountId
+
+###############################################################################
+#
+# Template Summary
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ IAM Role
+#
+# ✔ IAM Instance Profile
+#
+# ✔ Customer Managed Policy
+#
+# ✔ AWS Managed Policies condicionais
+#
+# ✔ Trust Relationship para Amazon EC2
+#
+# ✔ Outputs reutilizáveis
+#
+# ✔ Cross-Stack Exports
+#
+###############################################################################
+#
+# Arquitetura
+#
+#                Amazon EC2
+#                     │
+#                     │ AssumeRole
+#                     ▼
+#               IAM Instance Profile
+#                     │
+#                     ▼
+#                  IAM Role
+#                     │
+#      ┌──────────────┼────────────────┐
+#      │              │                │
+#      ▼              ▼                ▼
+#   Systems      CloudWatch       Amazon S3
+#   Manager         Logs           ReadOnly
+#                     │
+#                     ▼
+#          Customer Managed Policy
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ IAM Roles em vez de Access Keys
+#
+# ✔ Credenciais temporárias (AWS STS)
+#
+# ✔ Princípio do Menor Privilégio
+#
+# ✔ Políticas reutilizáveis
+#
+# ✔ Governança através de Tags
+#
+# ✔ Cross-Stack References
+#
+# ✔ Infrastructure as Code
+#
+# ✔ Templates modulares
+#
+# ✔ Compatível com AWS CLI
+#
+# ✔ Compatível com CloudFormation
+#
+# ✔ Compatível com cfn-lint
+#
+###############################################################################
+#
+# Próximas Evoluções
+#
+# • IAM Permission Boundary
+#
+# • IAM Permissions por ambiente
+#
+# • IAM Policy Conditions
+#
+# • KMS para criptografia
+#
+# • Secrets Manager
+#
+# • Parameter Store SecureString
+#
+# • AWS Config Rules
+#
+# • IAM Access Analyzer
+#
+# • CloudTrail
+#
+# • SCP (AWS Organizations)
+#
+###############################################################################
+#
+# Integração com templates do projeto
+#
+# templates/vpc.yaml
+#     │
+#     ▼
+# templates/iam-role.yaml
+#     │
+#     ▼
+# templates/ec2.yaml
+#     │
+#     ▼
+# templates/s3-bucket.yaml
+#
+# O ec2.yaml poderá consumir o Instance Profile utilizando:
+#
+# Fn::ImportValue:
+#   !Sub "${IAMStackName}-InstanceProfile"
+#
+###############################################################################
+#
+# Objetivos do Projeto
+#
+# • Eliminar credenciais estáticas em instâncias EC2.
+#
+# • Demonstrar autenticação baseada em IAM Roles.
+#
+# • Aplicar o princípio do menor privilégio.
+#
+# • Construir templates reutilizáveis.
+#
+# • Facilitar auditoria e governança.
+#
+# • Demonstrar boas práticas de Infrastructure as Code.
+#
+###############################################################################
+#
+# Fim do Template
+#
+###############################################################################  
+
+
+
