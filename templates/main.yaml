@@ -459,4 +459,157 @@ Conditions:
 #
 ############################################################################### 
 
+###############################################################################
+#
+# S3 Stack
+#
+# Provisiona:
+# • Amazon S3 Bucket
+# • Versionamento
+# • Criptografia
+# • Bloqueio de acesso público
+# • Lifecycle Rules
+#
+###############################################################################
+
+  S3Stack:
+
+    Type: AWS::CloudFormation::Stack
+
+    DependsOn:
+
+      - NetworkStack
+
+    Properties:
+
+      TemplateURL:
+
+        !Sub >
+          https://${TemplateBucket}.s3.amazonaws.com/${TemplatePrefix}/s3-bucket.yaml
+
+      Parameters:
+
+        ProjectName: !Ref ProjectName
+
+        Environment: !Ref Environment
+
+        Owner: !Ref Owner
+
+        BucketName:
+
+          !Sub "${ProjectName}-${Environment}-${AWS::AccountId}"
+
+        EnableVersioning: "true"
+
+        EnableEncryption: "true"
+
+        EnablePublicAccessBlock: "true"
+
+      Tags:
+
+        - Key: Name
+          Value: S3Stack
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# EC2 Stack
+#
+# Provisiona:
+# • Amazon EC2
+# • Elastic IP
+# • UserData
+#
+###############################################################################
+
+  EC2Stack:
+
+    Type: AWS::CloudFormation::Stack
+
+    DependsOn:
+
+      - NetworkStack
+      - SecurityStack
+      - IAMStack
+      - S3Stack
+
+    Properties:
+
+      TemplateURL:
+
+        !Sub >
+          https://${TemplateBucket}.s3.amazonaws.com/${TemplatePrefix}/ec2.yaml
+
+      Parameters:
+
+        ProjectName: !Ref ProjectName
+
+        Environment: !Ref Environment
+
+        Owner: !Ref Owner
+
+        InstanceType: !Ref InstanceType
+
+        KeyPairName: !Ref KeyPairName
+
+        NetworkStackName: NetworkStack
+
+        SecurityStackName: SecurityStack
+
+        IAMStackName: IAMStack
+
+        EnableElasticIP: "true"
+
+        EnableDetailedMonitoring: "true"
+
+      Tags:
+
+        - Key: Name
+          Value: EC2Stack
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# Fluxo de Provisionamento
+#
+# Network
+#     │
+#     ▼
+# Security
+#     │
+#     ▼
+# IAM
+#     │
+#     ▼
+# S3
+#     │
+#     ▼
+# EC2
+#
+###############################################################################
+
+###############################################################################
+#
+# Dependências
+#
+# ✔ EC2 depende da rede.
+#
+# ✔ EC2 depende do Security Group.
+#
+# ✔ EC2 depende da IAM Role.
+#
+# ✔ Bucket S3 pode ser criado independentemente da EC2.
+#
+############################################################################### 
+
 
