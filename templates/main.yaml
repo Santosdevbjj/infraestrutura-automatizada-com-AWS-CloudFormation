@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - Template Principal (Nested Stacks)
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Orquestrar a implantação da infraestrutura completa utilizando
+                 Nested Stacks, promovendo modularidade, reutilização,
+                 governança e padronização da infraestrutura como código.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração Geral"
+
+        Parameters:
+
+          - ProjectName
+          - Environment
+          - Owner
+
+      - Label:
+          default: "Localização dos Templates"
+
+        Parameters:
+
+          - TemplateBucket
+          - TemplatePrefix
+
+      - Label:
+          default: "Rede"
+
+        Parameters:
+
+          - VPCCidr
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+
+      - Label:
+          default: "Computação"
+
+        Parameters:
+
+          - InstanceType
+          - KeyPairName
+
+      - Label:
+          default: "Segurança"
+
+        Parameters:
+
+          - SSHLocation
+
+    ParameterLabels:
+
+      ProjectName:
+        default: "Projeto"
+
+      Environment:
+        default: "Ambiente"
+
+      Owner:
+        default: "Responsável"
+
+      TemplateBucket:
+        default: "Bucket dos Templates"
+
+      TemplatePrefix:
+        default: "Diretório dos Templates"
+
+      VPCCidr:
+        default: "CIDR da VPC"
+
+      PublicSubnet1CIDR:
+        default: "Subnet Pública 1"
+
+      PublicSubnet2CIDR:
+        default: "Subnet Pública 2"
+
+      InstanceType:
+        default: "Tipo da Instância"
+
+      KeyPairName:
+        default: "Key Pair"
+
+      SSHLocation:
+        default: "CIDR autorizado para SSH"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Template: templates/main.yaml
+
+    IaC: AWS CloudFormation
+
+    Architecture: Nested Stacks
+
+    Version: "1.0"
+
+    LastUpdate: "2026"
+
+###############################################################################
+#
+# Parameters
+#
+###############################################################################
+
+Parameters:
+
+###############################################################################
+#
+# Projeto
+#
+###############################################################################
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+    Description: Nome do projeto.
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+    Description: Ambiente da implantação.
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+    Description: Responsável pela infraestrutura.
+
+###############################################################################
+#
+# Templates
+#
+###############################################################################
+
+  TemplateBucket:
+
+    Type: String
+
+    Description: >
+      Bucket S3 onde os templates CloudFormation estão armazenados.
+
+  TemplatePrefix:
+
+    Type: String
+
+    Default: templates
+
+    Description: >
+      Diretório dentro do bucket contendo os templates.
+
+###############################################################################
+#
+# Rede
+#
+###############################################################################
+
+  VPCCidr:
+
+    Type: String
+
+    Default: 10.0.0.0/16
+
+  PublicSubnet1CIDR:
+
+    Type: String
+
+    Default: 10.0.1.0/24
+
+  PublicSubnet2CIDR:
+
+    Type: String
+
+    Default: 10.0.2.0/24
+
+###############################################################################
+#
+# Computação
+#
+###############################################################################
+
+  InstanceType:
+
+    Type: String
+
+    Default: t3.micro
+
+    AllowedValues:
+
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+  KeyPairName:
+
+    Type: AWS::EC2::KeyPair::KeyName
+
+    Description: Nome do Key Pair existente.
+
+###############################################################################
+#
+# Segurança
+#
+###############################################################################
+
+  SSHLocation:
+
+    Type: String
+
+    Default: 0.0.0.0/0
+
+    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+
+###############################################################################
+#
+# Conditions
+#
+###############################################################################
+
+Conditions:
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  IsDevelopment:
+
+    !Equals
+
+      - !Ref Environment
+
+      - Development
+
+  IsHomologation:
+
+    !Equals
+
+      - !Ref Environment
+
+      - Homologation
+
+  IsProduction:
+
+    !Equals
+
+      - !Ref Environment
+
+      - Production
+
+###############################################################################
+#
+# Resources
+#
+###############################################################################
