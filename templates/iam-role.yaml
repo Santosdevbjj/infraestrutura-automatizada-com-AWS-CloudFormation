@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - IAM Role para Amazon EC2
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Autor........: Sérgio Luiz dos Santos
+  Objetivo.....: Provisionar uma IAM Role reutilizável para instâncias EC2,
+                 eliminando o uso de credenciais locais e seguindo as boas
+                 práticas de segurança da AWS.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Configuração da IAM Role"
+
+        Parameters:
+          - RoleName
+          - InstanceProfileName
+
+      - Label:
+          default: "Permissões"
+
+        Parameters:
+          - EnableSSM
+          - EnableCloudWatch
+          - EnableS3ReadOnly
+
+      - Label:
+          default: "Ambiente"
+
+        Parameters:
+          - Environment
+          - ProjectName
+          - Owner
+
+    ParameterLabels:
+
+      RoleName:
+        default: "Nome da IAM Role"
+
+      InstanceProfileName:
+        default: "Nome do Instance Profile"
+
+      EnableSSM:
+        default: "Habilitar AWS Systems Manager"
+
+      EnableCloudWatch:
+        default: "Habilitar CloudWatch Agent"
+
+      EnableS3ReadOnly:
+        default: "Permitir leitura em buckets S3"
+
+      Environment:
+        default: "Ambiente"
+
+      ProjectName:
+        default: "Projeto"
+
+      Owner:
+        default: "Responsável"
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Template: templates/iam-role.yaml
+
+    IaC: AWS CloudFormation
+
+    Version: "1.0"
+
+    LastUpdate: "2026"
+
+Parameters:
+
+###############################################################################
+#
+# IAM
+#
+###############################################################################
+
+  RoleName:
+
+    Type: String
+
+    Default: CloudFormationEC2Role
+
+    Description: >
+      Nome da IAM Role que será associada às instâncias EC2.
+
+    AllowedPattern: "^[a-zA-Z0-9+=,.@_-]{1,64}$"
+
+  InstanceProfileName:
+
+    Type: String
+
+    Default: CloudFormationEC2Profile
+
+    Description: >
+      Nome do IAM Instance Profile.
+
+    AllowedPattern: "^[a-zA-Z0-9+=,.@_-]{1,64}$"
+
+###############################################################################
+#
+# Recursos opcionais
+#
+###############################################################################
+
+  EnableSSM:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: >
+      Anexa a política AmazonSSMManagedInstanceCore.
+
+  EnableCloudWatch:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: >
+      Anexa permissões para utilização do CloudWatch Agent.
+
+  EnableS3ReadOnly:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: >
+      Permite acesso somente leitura aos buckets Amazon S3.
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+###############################################################################
+#
+# Conditions
+#
+###############################################################################
+
+Conditions:
+
+  CreateSSMPolicy: !Equals
+
+    - !Ref EnableSSM
+
+    - "true"
+
+  CreateCloudWatchPolicy: !Equals
+
+    - !Ref EnableCloudWatch
+
+    - "true"
+
+  CreateS3ReadOnlyPolicy: !Equals
+
+    - !Ref EnableS3ReadOnly
+
+    - "true"
+
+  IsProduction: !Equals
+
+    - !Ref Environment
+
+    - Production
+
+  IsDevelopment: !Equals
+
+    - !Ref Environment
+
+    - Development 
+
+    
