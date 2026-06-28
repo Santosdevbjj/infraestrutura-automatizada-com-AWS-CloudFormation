@@ -228,3 +228,319 @@ Metadata:
 ###############################################################################
 
 Parameters:
+
+
+
+###############################################################################
+#
+# Informações Gerais
+#
+###############################################################################
+
+  ProjectName:
+
+    Type: String
+
+    Default: AWS-CloudFormation-Lab
+
+    MinLength: 3
+
+    MaxLength: 50
+
+    AllowedPattern: "^[a-zA-Z0-9-]+$"
+
+    Description: Nome utilizado para identificar os recursos do projeto.
+
+  Environment:
+
+    Type: String
+
+    Default: Development
+
+    AllowedValues:
+
+      - Development
+      - Homologation
+      - Production
+
+    Description: Ambiente onde a infraestrutura será implantada.
+
+  Owner:
+
+    Type: String
+
+    Default: Sergio Santos
+
+    MinLength: 3
+
+    MaxLength: 100
+
+    Description: Responsável pela infraestrutura.
+
+###############################################################################
+#
+# Rede
+#
+###############################################################################
+
+  VPCCidr:
+
+    Type: String
+
+    Default: 10.0.0.0/16
+
+    Description: Bloco CIDR da VPC.
+
+  PublicSubnet1CIDR:
+
+    Type: String
+
+    Default: 10.0.1.0/24
+
+    Description: CIDR da primeira subnet pública.
+
+  PublicSubnet2CIDR:
+
+    Type: String
+
+    Default: 10.0.2.0/24
+
+    Description: CIDR da segunda subnet pública.
+
+###############################################################################
+#
+# Amazon EC2
+#
+###############################################################################
+
+  InstanceType:
+
+    Type: String
+
+    Default: t3.micro
+
+    AllowedValues:
+
+      - t3.micro
+      - t3.small
+      - t3.medium
+
+    Description: Tipo da instância EC2.
+
+  KeyPairName:
+
+    Type: AWS::EC2::KeyPair::KeyName
+
+    Description: Nome de um Key Pair existente para acesso SSH.
+
+###############################################################################
+#
+# Segurança
+#
+###############################################################################
+
+  SSHLocation:
+
+    Type: String
+
+    Default: 0.0.0.0/0
+
+    AllowedPattern: "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+
+    Description: Faixa CIDR autorizada para acesso SSH.
+
+  EnableHTTP:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Habilita a regra HTTP (porta 80).
+
+  EnableHTTPS:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Habilita a regra HTTPS (porta 443).
+
+  EnableICMP:
+
+    Type: String
+
+    Default: "false"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Habilita ICMP (ping).
+
+###############################################################################
+#
+# Amazon S3
+#
+###############################################################################
+
+  BucketName:
+
+    Type: String
+
+    Default: ""
+
+    Description: >
+      Nome do bucket. Quando vazio, o template gerará um nome utilizando
+      ProjectName, Environment e AccountId.
+
+  EnableVersioning:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Ativa o versionamento do bucket.
+
+  EnableEncryption:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Ativa a criptografia padrão do bucket.
+
+###############################################################################
+#
+# Monitoramento
+#
+###############################################################################
+
+  EnableDetailedMonitoring:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Ativa o monitoramento detalhado da instância EC2.
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  EnableElasticIP:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Associa um Elastic IP à instância EC2.
+
+###############################################################################
+#
+# AWS Systems Manager
+#
+###############################################################################
+
+  EnableSSM:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Permite gerenciamento da EC2 via AWS Systems Manager.
+
+###############################################################################
+#
+# CloudWatch
+#
+###############################################################################
+
+  EnableCloudWatch:
+
+    Type: String
+
+    Default: "true"
+
+    AllowedValues:
+
+      - "true"
+      - "false"
+
+    Description: Instala e configura o CloudWatch Agent.
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+  CostCenter:
+
+    Type: String
+
+    Default: TI
+
+    Description: Centro de custo utilizado para governança.
+
+  Department:
+
+    Type: String
+
+    Default: Tecnologia
+
+    Description: Departamento responsável pelos recursos.
+
+  ApplicationName:
+
+    Type: String
+
+    Default: CloudFormationLab
+
+    Description: Nome da aplicação.
+
+###############################################################################
+#
+# Próxima seção
+#
+###############################################################################
+
+Mappings: 
+
