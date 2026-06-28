@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  ============================================================================
+  AWS CloudFormation - Complete Lab (Single Stack)
+  ----------------------------------------------------------------------------
+  Projeto......: Infraestrutura Automatizada com AWS CloudFormation
+  Repositório..: infraestrutura-automatizada-com-AWS-CloudFormation
+  Template.....: templates/complete-lab.yaml
+  Autor........: Sérgio Luiz dos Santos
+  Arquitetura..: Single Stack (Monolítica)
+  Objetivo.....: Provisionar uma infraestrutura completa utilizando um único
+                 template CloudFormation, demonstrando boas práticas de
+                 Infrastructure as Code (IaC), modularização lógica,
+                 parametrização, governança e segurança.
+  ============================================================================
+
+Metadata:
+
+  AWS::CloudFormation::Interface:
+
+    ParameterGroups:
+
+      - Label:
+          default: "Informações Gerais"
+
+        Parameters:
+
+          - ProjectName
+          - Environment
+          - Owner
+
+      - Label:
+          default: "Rede"
+
+        Parameters:
+
+          - VPCCidr
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+
+      - Label:
+          default: "Amazon EC2"
+
+        Parameters:
+
+          - InstanceType
+          - KeyPairName
+
+      - Label:
+          default: "Segurança"
+
+        Parameters:
+
+          - SSHLocation
+          - EnableHTTP
+          - EnableHTTPS
+          - EnableICMP
+
+      - Label:
+          default: "Amazon S3"
+
+        Parameters:
+
+          - BucketName
+          - EnableVersioning
+          - EnableEncryption
+
+    ParameterLabels:
+
+      ProjectName:
+        default: Projeto
+
+      Environment:
+        default: Ambiente
+
+      Owner:
+        default: Responsável
+
+      VPCCidr:
+        default: CIDR da VPC
+
+      PublicSubnet1CIDR:
+        default: Subnet Pública 1
+
+      PublicSubnet2CIDR:
+        default: Subnet Pública 2
+
+      InstanceType:
+        default: Tipo da Instância
+
+      KeyPairName:
+        default: Chave SSH
+
+      SSHLocation:
+        default: Origem SSH
+
+      EnableHTTP:
+        default: Habilitar HTTP
+
+      EnableHTTPS:
+        default: Habilitar HTTPS
+
+      EnableICMP:
+        default: Habilitar ICMP
+
+      BucketName:
+        default: Nome do Bucket
+
+      EnableVersioning:
+        default: Versionamento
+
+      EnableEncryption:
+        default: Criptografia
+
+###############################################################################
+#
+# Informações do Projeto
+#
+###############################################################################
+
+  Project:
+
+    Name: Infraestrutura Automatizada com AWS CloudFormation
+
+    Repository: infraestrutura-automatizada-com-AWS-CloudFormation
+
+    Template: templates/complete-lab.yaml
+
+    Version: "1.0.0"
+
+    Architecture: Single Stack
+
+    IaC: AWS CloudFormation
+
+    CloudProvider: AWS
+
+    LastUpdate: "2026"
+
+###############################################################################
+#
+# Objetivos do Laboratório
+#
+###############################################################################
+#
+# Este template demonstra:
+#
+# • Infrastructure as Code (IaC)
+# • AWS CloudFormation
+# • Provisionamento automatizado
+# • Segurança em nuvem
+# • Modularização lógica em um único template
+# • Governança por parâmetros e tags
+# • Recursos reutilizáveis
+# • Ambientes Development, Homologation e Production
+#
+###############################################################################
+#
+# Arquitetura
+#
+#                    Internet
+#                        │
+#                 Internet Gateway
+#                        │
+#                    Route Table
+#                        │
+#         ┌──────────────┴──────────────┐
+#         │                             │
+#   Public Subnet 1              Public Subnet 2
+#         │                             │
+#         └──────────────┬──────────────┘
+#                        │
+#                 Security Group
+#                        │
+#              Amazon EC2 Instance
+#                        │
+#          ┌─────────────┴─────────────┐
+#          │                           │
+#      Elastic IP                IAM Role
+#                                      │
+#                                      ▼
+#                                Amazon S3
+#
+###############################################################################
+#
+# Recursos que serão provisionados
+#
+# ✔ Amazon VPC
+# ✔ Internet Gateway
+# ✔ Route Table
+# ✔ Public Subnet 1
+# ✔ Public Subnet 2
+# ✔ Network ACL
+# ✔ Security Group
+# ✔ IAM Role
+# ✔ Instance Profile
+# ✔ Amazon EC2
+# ✔ Elastic IP
+# ✔ Amazon S3
+#
+###############################################################################
+#
+# Estrutura do Template
+#
+# Parte 1  -> Cabeçalho, Metadata e Interface
+# Parte 2  -> Parameters
+# Parte 3  -> Mappings, Conditions e Rules
+# Parte 4  -> Amazon VPC
+# Parte 5  -> Subnets e Network ACL
+# Parte 6  -> Security Group
+# Parte 7  -> IAM
+# Parte 8  -> Amazon S3
+# Parte 9  -> Amazon EC2
+# Parte 10 -> Outputs
+# Parte 11 -> Documentação Técnica
+# Parte 12 -> Roadmap e Encerramento
+#
+###############################################################################
+#
+# Convenções
+#
+# • Recursos nomeados com ProjectName.
+# • Tags padronizadas para todos os recursos.
+# • Comentários explicativos em cada seção.
+# • Estrutura compatível com cfn-lint.
+# • Alinhado ao AWS Well-Architected Framework.
+#
+###############################################################################
+
+Parameters:
