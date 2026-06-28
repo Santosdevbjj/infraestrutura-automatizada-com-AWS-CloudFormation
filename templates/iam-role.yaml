@@ -227,4 +227,149 @@ Conditions:
 
     - Development 
 
-    
+###############################################################################
+#
+# Resources
+#
+###############################################################################
+
+Resources:
+
+###############################################################################
+#
+# IAM Role
+#
+# Role assumida por instâncias Amazon EC2.
+#
+###############################################################################
+
+  EC2IAMRole:
+
+    Type: AWS::IAM::Role
+
+    Properties:
+
+      RoleName: !Ref RoleName
+
+      Description: >
+        IAM Role utilizada por instâncias Amazon EC2 para acesso seguro aos
+        serviços AWS sem utilização de Access Keys.
+
+      Path: /
+
+      MaxSessionDuration: 43200
+
+###############################################################################
+#
+# Trust Relationship
+#
+###############################################################################
+
+      AssumeRolePolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+          - Sid: EC2TrustRelationship
+
+            Effect: Allow
+
+            Principal:
+
+              Service:
+
+                - ec2.amazonaws.com
+
+            Action:
+
+              - sts:AssumeRole
+
+###############################################################################
+#
+# AWS Managed Policies
+#
+###############################################################################
+
+      ManagedPolicyArns:
+
+        #######################################################################
+        # AWS Systems Manager
+        #######################################################################
+
+        - !If
+
+          - CreateSSMPolicy
+
+          - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+          - !Ref AWS::NoValue
+
+        #######################################################################
+        # CloudWatch Agent
+        #######################################################################
+
+        - !If
+
+          - CreateCloudWatchPolicy
+
+          - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+          - !Ref AWS::NoValue
+
+        #######################################################################
+        # Amazon S3 Read Only
+        #######################################################################
+
+        - !If
+
+          - CreateS3ReadOnlyPolicy
+
+          - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+          - !Ref AWS::NoValue
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+      Tags:
+
+        - Key: Name
+          Value: !Ref RoleName
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: Purpose
+          Value: EC2 Identity
+
+        - Key: Security
+          Value: LeastPrivilege
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+        - Key: Version
+          Value: "1.0" 
+
+
+
+        
