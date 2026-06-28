@@ -371,5 +371,162 @@ Resources:
           Value: "1.0" 
 
 
+###############################################################################
+#
+# Customer Managed Policy
+#
+# Política personalizada contendo permissões mínimas necessárias para
+# workloads executadas na EC2.
+#
+###############################################################################
+
+  EC2CustomPolicy:
+
+    Type: AWS::IAM::ManagedPolicy
+
+    Properties:
+
+      ManagedPolicyName: !Sub "${ProjectName}-EC2-CustomPolicy"
+
+      Description: >
+        Política personalizada utilizada pelas instâncias EC2 deste projeto.
+
+      PolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+###############################################################################
+#
+# CloudFormation ReadOnly
+#
+###############################################################################
+
+          - Sid: CloudFormationRead
+
+            Effect: Allow
+
+            Action:
+
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackEvents
+              - cloudformation:DescribeStackResources
+
+            Resource: "*"
+
+###############################################################################
+#
+# EC2 ReadOnly
+#
+###############################################################################
+
+          - Sid: EC2Read
+
+            Effect: Allow
+
+            Action:
+
+              - ec2:DescribeInstances
+              - ec2:DescribeVolumes
+              - ec2:DescribeTags
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+
+            Resource: "*"
+
+###############################################################################
+#
+# CloudWatch Metrics
+#
+###############################################################################
+
+          - Sid: CloudWatchMetrics
+
+            Effect: Allow
+
+            Action:
+
+              - cloudwatch:PutMetricData
+
+            Resource: "*"
+
+###############################################################################
+#
+# Systems Manager Parameter Store
+#
+###############################################################################
+
+          - Sid: ParameterStoreRead
+
+            Effect: Allow
+
+            Action:
+
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:GetParametersByPath
+
+            Resource: "*"
+
+###############################################################################
+#
+# Logs
+#
+###############################################################################
+
+          - Sid: CloudWatchLogs
+
+            Effect: Allow
+
+            Action:
+
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogStreams
+
+            Resource: "*"
+
+      Roles:
+
+        - !Ref EC2IAMRole
+
+###############################################################################
+#
+# Instance Profile
+#
+###############################################################################
+
+  EC2InstanceProfile:
+
+    Type: AWS::IAM::InstanceProfile
+
+    Properties:
+
+      InstanceProfileName: !Ref InstanceProfileName
+
+      Path: /
+
+      Roles:
+
+        - !Ref EC2IAMRole
+
+###############################################################################
+#
+# Tags (Instance Profile)
+#
+###############################################################################
+#
+# O recurso AWS::IAM::InstanceProfile não suporta Tags.
+#
+# A governança é realizada através da IAM Role correspondente.
+#
+############################################################################### 
+
+
+
+
 
         
