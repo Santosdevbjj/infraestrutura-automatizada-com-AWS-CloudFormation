@@ -612,4 +612,280 @@ Conditions:
 #
 ############################################################################### 
 
+###############################################################################
+#
+# Outputs
+#
+###############################################################################
+
+Outputs:
+
+###############################################################################
+#
+# Stack Principal
+#
+###############################################################################
+
+  MainStackName:
+
+    Description: Nome da Stack principal.
+
+    Value: !Ref AWS::StackName
+
+  MainStackId:
+
+    Description: Identificador da Stack principal.
+
+    Value: !Ref AWS::StackId
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  Environment:
+
+    Description: Ambiente implantado.
+
+    Value: !Ref Environment
+
+  Project:
+
+    Description: Nome do projeto.
+
+    Value: !Ref ProjectName
+
+###############################################################################
+#
+# Nested Stacks
+#
+###############################################################################
+
+  NetworkStackId:
+
+    Description: Stack responsável pela infraestrutura de rede.
+
+    Value: !Ref NetworkStack
+
+  SecurityStackId:
+
+    Description: Stack responsável pela segurança.
+
+    Value: !Ref SecurityStack
+
+  IAMStackId:
+
+    Description: Stack responsável pelas permissões IAM.
+
+    Value: !Ref IAMStack
+
+  S3StackId:
+
+    Description: Stack responsável pelo armazenamento.
+
+    Value: !Ref S3Stack
+
+  EC2StackId:
+
+    Description: Stack responsável pela computação.
+
+    Value: !Ref EC2Stack
+
+###############################################################################
+#
+# Recursos Importantes
+#
+###############################################################################
+
+  VpcId:
+
+    Description: VPC criada.
+
+    Value:
+
+      Fn::ImportValue:
+
+        !Sub "NetworkStack-VpcId"
+
+  SecurityGroupId:
+
+    Description: Security Group principal.
+
+    Value:
+
+      Fn::ImportValue:
+
+        !Sub "SecurityStack-SecurityGroupId"
+
+  InstanceProfile:
+
+    Description: Instance Profile utilizado pela EC2.
+
+    Value:
+
+      Fn::ImportValue:
+
+        !Sub "IAMStack-InstanceProfileName"
+
+  BucketName:
+
+    Description: Bucket S3 utilizado pelo laboratório.
+
+    Value:
+
+      Fn::ImportValue:
+
+        !Sub "S3Stack-BucketName"
+
+###############################################################################
+#
+# Resumo
+#
+###############################################################################
+
+  Architecture:
+
+    Description: Arquitetura utilizada.
+
+    Value: Nested Stacks
+
+  InfrastructureAsCode:
+
+    Description: Ferramenta de IaC.
+
+    Value: AWS CloudFormation
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Fluxo da implantação
+#
+#                main.yaml
+#                     │
+#     ┌───────────────┼───────────────┐
+#     │               │               │
+#     ▼               ▼               ▼
+#   VPC          Security          IAM
+#     │               │               │
+#     └───────────────┼───────────────┘
+#                     │
+#                     ▼
+#                    S3
+#                     │
+#                     ▼
+#                    EC2
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Amazon VPC
+# ✔ Internet Gateway
+# ✔ Route Table
+# ✔ Public Subnets
+# ✔ Network ACL
+# ✔ Security Group
+# ✔ IAM Role
+# ✔ Instance Profile
+# ✔ Amazon EC2
+# ✔ Elastic IP
+# ✔ Amazon S3
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Infrastructure as Code
+# ✔ Nested Stacks
+# ✔ Cross-Stack References
+# ✔ Tags Padronizadas
+# ✔ Parametrização
+# ✔ Reutilização de Templates
+# ✔ Modularização
+# ✔ Menor Acoplamento
+# ✔ Least Privilege
+# ✔ IAM dedicado
+# ✔ Criptografia no S3
+# ✔ Versionamento
+# ✔ Public Access Block
+# ✔ UserData Automatizado
+# ✔ Outputs reutilizáveis
+#
+###############################################################################
+#
+# Arquitetura Modular
+#
+# templates/
+#
+# ├── main.yaml
+# ├── vpc.yaml
+# ├── security-group.yaml
+# ├── iam-role.yaml
+# ├── s3-bucket.yaml
+# └── ec2.yaml
+#
+###############################################################################
+#
+# Roadmap
+#
+# Futuras evoluções do projeto:
+#
+# • NAT Gateway
+# • Private Subnets
+# • Auto Scaling Group
+# • Launch Template
+# • Application Load Balancer
+# • Route53
+# • ACM
+# • CloudFront
+# • AWS WAF
+# • AWS Shield
+# • Amazon RDS
+# • Amazon ElastiCache
+# • Amazon ECS
+# • Amazon EKS
+# • AWS Systems Manager
+# • CloudWatch Dashboards
+# • AWS Backup
+# • AWS Config
+# • AWS CloudTrail
+# • CI/CD com GitHub Actions
+# • Integração com Terraform para comparação entre IaC
+#
+###############################################################################
+#
+# Objetivos de Aprendizagem
+#
+# Este projeto demonstra:
+#
+# • Automação de infraestrutura utilizando AWS CloudFormation.
+# • Organização da infraestrutura em Nested Stacks.
+# • Reutilização de componentes através de Cross-Stack References.
+# • Provisionamento padronizado e reproduzível.
+# • Aplicação de boas práticas do AWS Well-Architected Framework.
+# • Estrutura compatível com ambientes corporativos.
+#
+###############################################################################
+#
+# Compatibilidade
+#
+# ✔ AWS Console
+# ✔ AWS CLI
+# ✔ AWS CloudFormation
+# ✔ Nested Stacks
+# ✔ AWS Organizations
+# ✔ AWS Well-Architected Framework
+# ✔ cfn-lint
+# ✔ CI/CD
+#
+###############################################################################
+#
+# Fim do Template
+#
+############################################################################### 
+
 
