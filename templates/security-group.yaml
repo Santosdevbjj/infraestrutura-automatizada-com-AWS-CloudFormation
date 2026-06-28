@@ -457,5 +457,225 @@ Conditions:
           Value: "1.0" 
 
 
+###############################################################################
+#
+# Self Reference Rule
+#
+# Permite comunicação entre instâncias que utilizam o mesmo Security Group.
+#
+###############################################################################
+
+  SecurityGroupSelfReference:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: -1
+
+      SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+      Description: Internal communication between instances
+
+###############################################################################
+#
+# HTTP IPv6
+#
+###############################################################################
+
+  HTTPIPv6Ingress:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: CreateHTTPRule
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 80
+
+      ToPort: 80
+
+      CidrIpv6: ::/0
+
+      Description: HTTP IPv6
+
+###############################################################################
+#
+# HTTPS IPv6
+#
+###############################################################################
+
+  HTTPSIPv6Ingress:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: CreateHTTPSRule
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 443
+
+      ToPort: 443
+
+      CidrIpv6: ::/0
+
+      Description: HTTPS IPv6
+
+###############################################################################
+#
+# ICMP IPv6 (Opcional)
+#
+###############################################################################
+
+  ICMPIPv6Ingress:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: CreateICMPRule
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: 58
+
+      FromPort: -1
+
+      ToPort: -1
+
+      CidrIpv6: ::/0
+
+      Description: ICMPv6
+
+###############################################################################
+#
+# Prefix List Example
+#
+# Estrutura preparada para acesso a serviços AWS através de Prefix Lists.
+#
+# Exemplo:
+# com.amazonaws.us-east-1.s3
+#
+###############################################################################
+
+# ExamplePrefixListIngress:
+#
+#   Type: AWS::EC2::SecurityGroupIngress
+#
+#   Properties:
+#
+#     GroupId: !Ref EC2SecurityGroup
+#
+#     IpProtocol: tcp
+#
+#     FromPort: 443
+#
+#     ToPort: 443
+#
+#     SourcePrefixListId: pl-xxxxxxxx
+#
+#     Description: AWS Managed Prefix List
+
+###############################################################################
+#
+# Future Load Balancer Rule
+#
+# Estrutura preparada para integração com Application Load Balancer.
+#
+###############################################################################
+
+# ALBIngress:
+#
+#   Type: AWS::EC2::SecurityGroupIngress
+#
+#   Properties:
+#
+#     GroupId: !Ref EC2SecurityGroup
+#
+#     IpProtocol: tcp
+#
+#     FromPort: 80
+#
+#     ToPort: 80
+#
+#     SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+
+###############################################################################
+#
+# Future Auto Scaling
+#
+# O Security Group foi desacoplado da EC2 para reutilização por:
+#
+# ✔ Auto Scaling Group
+#
+# ✔ Launch Template
+#
+# ✔ ECS
+#
+# ✔ EKS
+#
+# ✔ Elastic Beanstalk
+#
+# ✔ Application Load Balancer
+#
+# ✔ Network Load Balancer
+#
+###############################################################################
+
+###############################################################################
+#
+# Arquitetura
+#
+#                   Internet
+#                       │
+#          ┌────────────┴────────────┐
+#          │                         │
+#        HTTP                      HTTPS
+#          │                         │
+#          └────────────┬────────────┘
+#                       │
+#               Security Group
+#                       │
+#          ┌────────────┼────────────┐
+#          │            │            │
+#        SSH         Self Ref      ICMP
+#          │            │            │
+#          └────────────┴────────────┘
+#                       │
+#                    Amazon EC2
+#
+###############################################################################
+#
+# Segurança Implementada
+#
+# ✔ Least Privilege
+#
+# ✔ Regras parametrizadas
+#
+# ✔ IPv4
+#
+# ✔ IPv6
+#
+# ✔ Comunicação interna segura
+#
+# ✔ Preparado para Prefix Lists
+#
+# ✔ Preparado para Load Balancer
+#
+# ✔ Preparado para Auto Scaling
+#
+############################################################################### 
+
+
 
           
