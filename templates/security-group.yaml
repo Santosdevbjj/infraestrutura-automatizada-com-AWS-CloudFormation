@@ -293,3 +293,169 @@ Conditions:
 # Resources
 #
 ###############################################################################
+
+
+###############################################################################
+#
+# Amazon EC2 Security Group
+#
+###############################################################################
+
+  EC2SecurityGroup:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupName: !Ref SecurityGroupName
+
+      GroupDescription: !Ref SecurityGroupDescription
+
+      VpcId:
+
+        Fn::ImportValue:
+
+          !Sub "${NetworkStackName}-VpcId"
+
+      SecurityGroupIngress:
+
+###############################################################################
+#
+# SSH
+#
+###############################################################################
+
+        - IpProtocol: tcp
+
+          FromPort: 22
+
+          ToPort: 22
+
+          CidrIp: !Ref SSHLocation
+
+          Description: SSH Administration
+
+###############################################################################
+#
+# HTTP
+#
+###############################################################################
+
+        - !If
+
+          - CreateHTTPRule
+
+          - IpProtocol: tcp
+
+            FromPort: 80
+
+            ToPort: 80
+
+            CidrIp: 0.0.0.0/0
+
+            Description: HTTP
+
+          - !Ref AWS::NoValue
+
+###############################################################################
+#
+# HTTPS
+#
+###############################################################################
+
+        - !If
+
+          - CreateHTTPSRule
+
+          - IpProtocol: tcp
+
+            FromPort: 443
+
+            ToPort: 443
+
+            CidrIp: 0.0.0.0/0
+
+            Description: HTTPS
+
+          - !Ref AWS::NoValue
+
+###############################################################################
+#
+# ICMP (Opcional)
+#
+###############################################################################
+
+        - !If
+
+          - CreateICMPRule
+
+          - IpProtocol: icmp
+
+            FromPort: -1
+
+            ToPort: -1
+
+            CidrIp: 0.0.0.0/0
+
+            Description: ICMP Ping
+
+          - !Ref AWS::NoValue
+
+###############################################################################
+#
+# Egress
+#
+###############################################################################
+
+      SecurityGroupEgress:
+
+        - IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+          Description: Allow all outbound traffic
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+      Tags:
+
+        - Key: Name
+          Value: !Ref SecurityGroupName
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+        - Key: Repository
+          Value: infraestrutura-automatizada-com-AWS-CloudFormation
+
+        - Key: IaC
+          Value: AWS CloudFormation
+
+        - Key: Purpose
+          Value: Network Security
+
+        - Key: Security
+          Value: LeastPrivilege
+
+        - Key: CostCenter
+          Value: Cloud-Studies
+
+        - Key: Version
+          Value: "1.0" 
+
+
+
+          
