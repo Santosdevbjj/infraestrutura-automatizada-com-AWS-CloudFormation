@@ -677,5 +677,287 @@ Conditions:
 ############################################################################### 
 
 
+###############################################################################
+#
+# Outputs
+#
+# Os recursos exportados poderão ser reutilizados por outras stacks utilizando
+# Fn::ImportValue.
+#
+###############################################################################
+
+Outputs:
+
+###############################################################################
+#
+# Security Group ID
+#
+###############################################################################
+
+  SecurityGroupId:
+
+    Description: ID do Security Group criado.
+
+    Value: !Ref EC2SecurityGroup
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-SecurityGroupId"
+
+###############################################################################
+#
+# Security Group Name
+#
+###############################################################################
+
+  SecurityGroupName:
+
+    Description: Nome do Security Group.
+
+    Value: !GetAtt EC2SecurityGroup.GroupName
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-SecurityGroupName"
+
+###############################################################################
+#
+# VPC ID
+#
+###############################################################################
+
+  VpcId:
+
+    Description: VPC utilizada pelo Security Group.
+
+    Value:
+
+      Fn::ImportValue:
+
+        !Sub "${NetworkStackName}-VpcId"
+
+    Export:
+
+      Name: !Sub "${AWS::StackName}-VpcId"
+
+###############################################################################
+#
+# Ambiente
+#
+###############################################################################
+
+  Environment:
+
+    Description: Ambiente da implantação.
+
+    Value: !Ref Environment
+
+###############################################################################
+#
+# Projeto
+#
+###############################################################################
+
+  Project:
+
+    Description: Nome do projeto.
+
+    Value: !Ref ProjectName
+
+###############################################################################
+#
+# Stack
+#
+###############################################################################
+
+  StackName:
+
+    Description: Nome da Stack.
+
+    Value: !Ref AWS::StackName
+
+  StackId:
+
+    Description: Identificador único da Stack.
+
+    Value: !Ref AWS::StackId
+
+  AWSRegion:
+
+    Description: Região AWS utilizada.
+
+    Value: !Ref AWS::Region
+
+  AWSAccount:
+
+    Description: Conta AWS responsável pela implantação.
+
+    Value: !Ref AWS::AccountId
+
+###############################################################################
+#
+# Template Summary
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Amazon EC2 Security Group
+#
+# ✔ Regras SSH
+#
+# ✔ Regras HTTP
+#
+# ✔ Regras HTTPS
+#
+# ✔ ICMP opcional
+#
+# ✔ Comunicação interna (Self Reference)
+#
+# ✔ IPv4
+#
+# ✔ IPv6
+#
+# ✔ Cross-Stack Exports
+#
+# ✔ Governança por Tags
+#
+###############################################################################
+#
+# Arquitetura
+#
+#                    Internet
+#                        │
+#          ┌─────────────┴─────────────┐
+#          │                           │
+#        HTTP                        HTTPS
+#          │                           │
+#          └─────────────┬─────────────┘
+#                        │
+#                Security Group
+#                        │
+#      ┌─────────────────┼─────────────────┐
+#      │                 │                 │
+#     SSH           Self Reference       ICMP
+#      │                 │                 │
+#      └─────────────────┴─────────────────┘
+#                        │
+#                 Amazon EC2
+#
+###############################################################################
+#
+# Integração entre Templates
+#
+# templates/vpc.yaml
+#        │
+#        ▼
+# templates/security-group.yaml
+#        │
+#        ▼
+# templates/iam-role.yaml
+#        │
+#        ▼
+# templates/ec2.yaml
+#        │
+#        ▼
+# templates/s3-bucket.yaml
+#
+###############################################################################
+#
+# Exemplo de utilização
+#
+# SecurityGroupIds:
+#
+#   - Fn::ImportValue:
+#
+#       !Sub "${SecurityStackName}-SecurityGroupId"
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Security Group desacoplado da EC2
+#
+# ✔ Infrastructure as Code
+#
+# ✔ AWS CloudFormation
+#
+# ✔ Cross-Stack References
+#
+# ✔ Least Privilege
+#
+# ✔ Regras parametrizadas
+#
+# ✔ Compatível com Nested Stacks
+#
+# ✔ Compatível com AWS CLI
+#
+# ✔ Compatível com AWS Console
+#
+# ✔ Compatível com cfn-lint
+#
+# ✔ Compatível com AWS Well-Architected Framework
+#
+###############################################################################
+#
+# Evoluções Futuras
+#
+# • Security Groups específicos para:
+#   - Application Load Balancer
+#   - Network Load Balancer
+#   - RDS
+#   - ElastiCache
+#   - ECS
+#   - EKS
+#
+# • AWS Managed Prefix Lists
+#
+# • AWS Firewall Manager
+#
+# • AWS Network Firewall
+#
+# • AWS WAF
+#
+# • AWS Shield Advanced
+#
+# • IPv6-only Subnets
+#
+# • Security Group Referencing entre aplicações
+#
+###############################################################################
+#
+# Objetivos do Projeto
+#
+# • Demonstrar a criação de Security Groups reutilizáveis.
+#
+# • Aplicar segmentação de segurança em uma arquitetura modular.
+#
+# • Facilitar o reuso por diferentes workloads.
+#
+# • Reduzir duplicação de regras entre stacks.
+#
+# • Adotar práticas alinhadas ao AWS Well-Architected Framework.
+#
+###############################################################################
+#
+# Compatibilidade
+#
+# ✔ AWS CloudFormation
+#
+# ✔ AWS CLI
+#
+# ✔ AWS Console
+#
+# ✔ AWS CDK (consumo por export/import)
+#
+# ✔ Nested Stacks
+#
+# ✔ Multi-Account (AWS Organizations)
+#
+###############################################################################
+#
+# Fim do Template
+#
+############################################################################### 
 
           
