@@ -857,4 +857,256 @@ Rules:
 Resources: 
 
 
+###############################################################################
+#
+# Resources
+#
+###############################################################################
+
+###############################################################################
+#
+# Amazon VPC
+#
+###############################################################################
+
+  VPC:
+
+    Type: AWS::EC2::VPC
+
+    Properties:
+
+      CidrBlock: !Ref VPCCidr
+
+      EnableDnsSupport: true
+
+      EnableDnsHostnames: true
+
+      InstanceTenancy: default
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-VPC"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Department
+          Value: !Ref Department
+
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+        - Key: Application
+          Value: !Ref ApplicationName
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# Internet Gateway
+#
+###############################################################################
+
+  InternetGateway:
+
+    Type: AWS::EC2::InternetGateway
+
+    Properties:
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-IGW"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# Attach Internet Gateway
+#
+###############################################################################
+
+  AttachGateway:
+
+    Type: AWS::EC2::VPCGatewayAttachment
+
+    Properties:
+
+      InternetGatewayId: !Ref InternetGateway
+
+      VpcId: !Ref VPC
+
+###############################################################################
+#
+# Public Route Table
+#
+###############################################################################
+
+  PublicRouteTable:
+
+    Type: AWS::EC2::RouteTable
+
+    Properties:
+
+      VpcId: !Ref VPC
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-Public-RT"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# Default Route
+#
+###############################################################################
+
+  DefaultPublicRoute:
+
+    Type: AWS::EC2::Route
+
+    DependsOn:
+
+      - AttachGateway
+
+    Properties:
+
+      DestinationCidrBlock: 0.0.0.0/0
+
+      GatewayId: !Ref InternetGateway
+
+      RouteTableId: !Ref PublicRouteTable
+
+###############################################################################
+#
+# DHCP Options
+#
+###############################################################################
+
+  DHCPOptions:
+
+    Type: AWS::EC2::DHCPOptions
+
+    Properties:
+
+      DomainName:
+
+        !Sub "${AWS::Region}.compute.internal"
+
+      DomainNameServers:
+
+        - AmazonProvidedDNS
+
+      Tags:
+
+        - Key: Name
+
+          Value:
+
+            !Sub "${ProjectName}-${Environment}-DHCP"
+
+###############################################################################
+#
+# Associate DHCP
+#
+###############################################################################
+
+  DHCPAssociation:
+
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+
+    Properties:
+
+      DhcpOptionsId: !Ref DHCPOptions
+
+      VpcId: !Ref VPC
+
+###############################################################################
+#
+# Flow Logs (Opcional)
+#
+###############################################################################
+#
+# Em ambientes corporativos recomenda-se habilitar:
+#
+# AWS VPC Flow Logs
+#
+# CloudWatch Logs
+#
+# Amazon S3
+#
+# Esta implementação será adicionada
+# futuramente no Roadmap.
+#
+###############################################################################
+
+###############################################################################
+#
+# Arquitetura da Rede
+#
+###############################################################################
+#
+#                Internet
+#                    │
+#          Internet Gateway
+#                    │
+#             Public Route Table
+#                    │
+#          0.0.0.0/0 → Internet
+#                    │
+#                  VPC
+#
+###############################################################################
+
+###############################################################################
+#
+# Recursos Criados nesta Parte
+#
+# ✔ Amazon VPC
+# ✔ DNS Support
+# ✔ DNS Hostnames
+# ✔ Internet Gateway
+# ✔ Gateway Attachment
+# ✔ Public Route Table
+# ✔ Default Route
+# ✔ DHCP Options
+#
+###############################################################################
+
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 5
+#
+# • Public Subnet 1
+# • Public Subnet 2
+# • Network ACL
+# • ACL Rules
+# • ACL Associations
+#
+############################################################################### 
+
+
 
