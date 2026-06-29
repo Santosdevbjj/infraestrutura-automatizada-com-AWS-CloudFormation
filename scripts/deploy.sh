@@ -551,4 +551,247 @@ create_artifact_bucket
 #
 ############################################################################### 
 
+###############################################################################
+#
+# Template Empacotado
+#
+###############################################################################
+
+PACKAGED_TEMPLATE="${PROJECT_ROOT}/templates/packaged-template.yaml"
+
+###############################################################################
+#
+# CloudFormation Package
+#
+###############################################################################
+
+package_template() {
+
+    section "Empacotando Template"
+
+    if grep -q "CodeUri\|TemplateURL\|AWS::Lambda" "${TEMPLATE_FILE}" 2>/dev/null
+    then
+
+        log_info "Recursos empacotáveis detectados."
+
+        aws cloudformation package \
+            --template-file "${TEMPLATE_FILE}" \
+            --s3-bucket "${ARTIFACT_BUCKET}" \
+            --output-template-file "${PACKAGED_TEMPLATE}" \
+            --region "${REGION}" \
+            --profile "${PROFILE}"
+
+        DEPLOY_TEMPLATE="${PACKAGED_TEMPLATE}"
+
+        log_success "Template empacotado."
+
+    else
+
+        log_info "Empacotamento não necessário."
+
+        DEPLOY_TEMPLATE="${TEMPLATE_FILE}"
+
+    fi
+
+}
+
+###############################################################################
+#
+# Confirmação para Produção
+#
+###############################################################################
+
+confirm_production() {
+
+    if [[ "${ENVIRONMENT}" == "prod" ]]
+    then
+
+        separator
+
+        echo
+
+        echo "ATENÇÃO"
+
+        echo
+
+        echo "Você está realizando deploy em PRODUÇÃO."
+
+        echo
+
+        read -rp "Deseja continuar? (yes/no): " answer
+
+        if [[ "${answer}" != "yes" ]]
+        then
+
+            log_warn "Deploy cancelado."
+
+            exit 0
+
+        fi
+
+    fi
+
+}
+
+###############################################################################
+#
+# CloudFormation Deploy
+#
+###############################################################################
+
+deploy_stack() {
+
+    section "Executando Deploy"
+
+    log_info "Iniciando deployment..."
+
+    aws cloudformation deploy \
+        --template-file "${DEPLOY_TEMPLATE}" \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        --capabilities \
+            CAPABILITY_IAM \
+            CAPABILITY_NAMED_IAM \
+            CAPABILITY_AUTO_EXPAND \
+        --parameter-overrides \
+            Environment="${ENVIRONMENT}" \
+        --no-fail-on-empty-changeset
+
+    log_success "Deployment concluído."
+
+}
+
+###############################################################################
+#
+# Espera pela Finalização
+#
+###############################################################################
+
+wait_stack() {
+
+    section "Aguardando Finalização"
+
+    if [[ "${STACK_EXISTS}" == true ]]
+    then
+
+        aws cloudformation wait stack-update-complete \
+            --stack-name "${STACK_NAME}" \
+            --region "${REGION}" \
+            --profile "${PROFILE}"
+
+    else
+
+        aws cloudformation wait stack-create-complete \
+            --stack-name "${STACK_NAME}" \
+            --region "${REGION}" \
+            --profile "${PROFILE}"
+
+    fi
+
+    log_success "Stack finalizada."
+
+}
+
+###############################################################################
+#
+# Rollback
+#
+###############################################################################
+
+rollback_information() {
+
+    section "Rollback"
+
+    local status
+
+    status="$(
+        aws cloudformation describe-stacks \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        --query "Stacks[0].StackStatus" \
+        --output text
+    )"
+
+    echo
+
+    echo "Status atual: ${status}"
+
+    echo
+
+    case "${status}" in
+
+        *ROLLBACK*)
+
+            log_warn "CloudFormation executou rollback."
+
+            ;;
+
+        *FAILED*)
+
+            log_error "Deploy falhou."
+
+            ;;
+
+        *)
+
+            log_success "Nenhum rollback detectado."
+
+            ;;
+
+    esac
+
+}
+
+###############################################################################
+#
+# Eventos da Stack
+#
+###############################################################################
+
+show_recent_events() {
+
+    section "Últimos Eventos"
+
+    aws cloudformation describe-stack-events \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        --max-items 10 \
+        --query "StackEvents[*].[Timestamp,LogicalResourceId,ResourceStatus]" \
+        --output table
+
+}
+
+###############################################################################
+#
+# Execução
+#
+###############################################################################
+
+package_template
+
+confirm_production
+
+deploy_stack
+
+wait_stack
+
+rollback_information
+
+show_recent_events
+
+###############################################################################
+#
+# Próxima Parte
+#
+# • Exibir Outputs
+# • Tempo de execução
+# • Estatísticas
+# • Resumo do Deploy
+# • Encerramento
+#
+############################################################################### 
+
 
