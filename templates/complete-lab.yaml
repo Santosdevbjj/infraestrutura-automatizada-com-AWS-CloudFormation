@@ -2623,4 +2623,362 @@ Resources:
 ############################################################################### 
 
 
+###############################################################################
+#
+# Amazon SNS Topic
+#
+###############################################################################
+
+  MonitoringTopic:
+
+    Type: AWS::SNS::Topic
+
+    Properties:
+
+      TopicName:
+
+        !Sub "${ProjectName}-${Environment}-Monitoring"
+
+      DisplayName:
+
+        AWS Infrastructure Monitoring
+
+      Tags:
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+###############################################################################
+#
+# CloudWatch Log Group
+#
+###############################################################################
+
+  CloudWatchLogGroup:
+
+    Type: AWS::Logs::LogGroup
+
+    Properties:
+
+      LogGroupName:
+
+        !Sub "/aws/ec2/${ProjectName}/${Environment}"
+
+      RetentionInDays: 30
+
+###############################################################################
+#
+# CloudWatch Alarm
+#
+# CPU Utilization
+#
+###############################################################################
+
+  CPUAlarm:
+
+    Type: AWS::CloudWatch::Alarm
+
+    Properties:
+
+      AlarmName:
+
+        !Sub "${ProjectName}-${Environment}-HighCPU"
+
+      AlarmDescription:
+
+        CPU acima de 80%.
+
+      Namespace: AWS/EC2
+
+      MetricName: CPUUtilization
+
+      Statistic: Average
+
+      Period: 300
+
+      EvaluationPeriods: 2
+
+      Threshold: 80
+
+      ComparisonOperator:
+
+        GreaterThanThreshold
+
+      Dimensions:
+
+        - Name: InstanceId
+
+          Value: !Ref EC2Instance
+
+      AlarmActions:
+
+        - !Ref MonitoringTopic
+
+###############################################################################
+#
+# Status Check Alarm
+#
+###############################################################################
+
+  StatusCheckAlarm:
+
+    Type: AWS::CloudWatch::Alarm
+
+    Properties:
+
+      AlarmName:
+
+        !Sub "${ProjectName}-${Environment}-StatusCheck"
+
+      AlarmDescription:
+
+        Falha na verificação da instância.
+
+      Namespace: AWS/EC2
+
+      MetricName:
+
+        StatusCheckFailed
+
+      Statistic: Maximum
+
+      Period: 60
+
+      EvaluationPeriods: 2
+
+      Threshold: 1
+
+      ComparisonOperator:
+
+        GreaterThanOrEqualToThreshold
+
+      Dimensions:
+
+        - Name: InstanceId
+
+          Value: !Ref EC2Instance
+
+      AlarmActions:
+
+        - !Ref MonitoringTopic
+
+###############################################################################
+#
+# CloudWatch Dashboard
+#
+###############################################################################
+
+  MonitoringDashboard:
+
+    Type: AWS::CloudWatch::Dashboard
+
+    Properties:
+
+      DashboardName:
+
+        !Sub "${ProjectName}-${Environment}-Dashboard"
+
+      DashboardBody:
+
+        !Sub |
+
+          {
+
+            "widgets":[
+
+              {
+
+                "type":"metric",
+
+                "x":0,
+
+                "y":0,
+
+                "width":12,
+
+                "height":6,
+
+                "properties":{
+
+                  "metrics":[
+
+                    ["AWS/EC2","CPUUtilization","InstanceId","${EC2Instance}"]
+
+                  ],
+
+                  "period":300,
+
+                  "stat":"Average",
+
+                  "region":"${AWS::Region}",
+
+                  "title":"CPU Utilization"
+
+                }
+
+              },
+
+              {
+
+                "type":"metric",
+
+                "x":12,
+
+                "y":0,
+
+                "width":12,
+
+                "height":6,
+
+                "properties":{
+
+                  "metrics":[
+
+                    ["AWS/EC2","NetworkIn","InstanceId","${EC2Instance}"],
+
+                    [".","NetworkOut",".","."]
+
+                  ],
+
+                  "period":300,
+
+                  "stat":"Average",
+
+                  "region":"${AWS::Region}",
+
+                  "title":"Network Traffic"
+
+                }
+
+              },
+
+              {
+
+                "type":"metric",
+
+                "x":0,
+
+                "y":6,
+
+                "width":12,
+
+                "height":6,
+
+                "properties":{
+
+                  "metrics":[
+
+                    ["AWS/EC2","DiskReadBytes","InstanceId","${EC2Instance}"],
+
+                    [".","DiskWriteBytes",".","."]
+
+                  ],
+
+                  "region":"${AWS::Region}",
+
+                  "stat":"Average",
+
+                  "title":"Disk Activity"
+
+                }
+
+              }
+
+            ]
+
+          }
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Arquitetura
+#
+#            Amazon EC2
+#                 │
+#      CloudWatch Agent
+#                 │
+#     ┌───────────┼────────────┐
+#     │           │            │
+#  Metrics      Logs      Dashboards
+#     │           │            │
+#     └───────────┼────────────┘
+#                 │
+#          CloudWatch Alarms
+#                 │
+#              Amazon SNS
+#                 │
+#      Email / Lambda / Slack
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ CloudWatch Dashboard
+# ✔ Log Group
+# ✔ CPU Alarm
+# ✔ Status Check Alarm
+# ✔ SNS Topic
+#
+###############################################################################
+#
+# Monitoramento
+#
+# ✔ CPU
+# ✔ Status Check
+# ✔ Rede
+# ✔ Disco
+# ✔ Logs
+#
+###############################################################################
+#
+# Benefícios
+#
+# ✔ Observabilidade
+# ✔ Alertas automáticos
+# ✔ Dashboards
+# ✔ Diagnóstico rápido
+# ✔ Preparado para operação 24x7
+#
+###############################################################################
+#
+# Boas Práticas AWS
+#
+# ✔ Observability Pillar
+# ✔ Monitoramento centralizado
+# ✔ Retenção de logs
+# ✔ Alarmes proativos
+# ✔ Dashboards reutilizáveis
+#
+###############################################################################
+#
+# Roadmap
+#
+# Futuras evoluções:
+#
+# ✔ Composite Alarms
+# ✔ CloudWatch Agent Config
+# ✔ AWS X-Ray
+# ✔ AWS Managed Grafana
+# ✔ Amazon OpenSearch
+#
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 11
+#
+# • Outputs
+# • Exports
+# • Cross-Stack References
+# • Informações da infraestrutura
+#
+############################################################################### 
+
+
 
