@@ -2007,4 +2007,288 @@ Resources:
 ############################################################################### 
 
 
+###############################################################################
+#
+# Amazon S3 Bucket
+#
+###############################################################################
+
+  S3Bucket:
+
+    Type: AWS::S3::Bucket
+
+    Properties:
+
+      BucketName:
+
+        !If
+
+          - AutoGenerateBucketName
+
+          - !Sub "${ProjectName}-${Environment}-${AWS::AccountId}"
+
+          - !Ref BucketName
+
+###############################################################################
+#
+# Versionamento
+#
+###############################################################################
+
+      VersioningConfiguration:
+
+        Status:
+
+          !If
+
+            - EnableVersioningCondition
+
+            - Enabled
+
+            - Suspended
+
+###############################################################################
+#
+# Criptografia
+#
+###############################################################################
+
+      BucketEncryption:
+
+        ServerSideEncryptionConfiguration:
+
+          - ServerSideEncryptionByDefault:
+
+              SSEAlgorithm: AES256
+
+###############################################################################
+#
+# Public Access Block
+#
+###############################################################################
+
+      PublicAccessBlockConfiguration:
+
+        BlockPublicAcls: true
+
+        IgnorePublicAcls: true
+
+        BlockPublicPolicy: true
+
+        RestrictPublicBuckets: true
+
+###############################################################################
+#
+# Lifecycle Rules
+#
+###############################################################################
+
+      LifecycleConfiguration:
+
+        Rules:
+
+          - Id: IntelligentLifecycle
+
+            Status: Enabled
+
+            ExpirationInDays: 365
+
+            NoncurrentVersionExpirationInDays: 90
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-Bucket"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Department
+          Value: !Ref Department
+
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# Bucket Policy
+#
+###############################################################################
+
+  S3BucketPolicy:
+
+    Type: AWS::S3::BucketPolicy
+
+    Properties:
+
+      Bucket: !Ref S3Bucket
+
+      PolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+###############################################################################
+#
+# Obrigatório HTTPS
+#
+###############################################################################
+
+          - Sid: DenyInsecureTransport
+
+            Effect: Deny
+
+            Principal: "*"
+
+            Action: "s3:*"
+
+            Resource:
+
+              - !Sub "${S3Bucket.Arn}"
+
+              - !Sub "${S3Bucket.Arn}/*"
+
+            Condition:
+
+              Bool:
+
+                aws:SecureTransport: false
+
+###############################################################################
+#
+# Permite acesso da IAM Role
+#
+###############################################################################
+
+          - Sid: AllowEC2Role
+
+            Effect: Allow
+
+            Principal:
+
+              AWS: !GetAtt EC2IAMRole.Arn
+
+            Action:
+
+              - s3:GetObject
+
+              - s3:PutObject
+
+              - s3:ListBucket
+
+            Resource:
+
+              - !GetAtt S3Bucket.Arn
+
+              - !Sub "${S3Bucket.Arn}/*"
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Arquitetura
+#
+#             Amazon EC2
+#                  │
+#            IAM Role
+#                  │
+#             HTTPS Only
+#                  │
+#              Amazon S3
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Amazon S3 Bucket
+#
+# ✔ Versionamento
+#
+# ✔ Criptografia AES-256
+#
+# ✔ Public Access Block
+#
+# ✔ Lifecycle Rules
+#
+# ✔ Bucket Policy
+#
+###############################################################################
+#
+# Segurança Implementada
+#
+# ✔ HTTPS obrigatório
+#
+# ✔ Sem acesso público
+#
+# ✔ SSE-S3
+#
+# ✔ Versionamento
+#
+# ✔ Lifecycle
+#
+# ✔ IAM Role
+#
+# ✔ Least Privilege
+#
+###############################################################################
+#
+# Benefícios
+#
+# ✔ Durabilidade de 11 noves.
+#
+# ✔ Proteção contra exclusão acidental.
+#
+# ✔ Conformidade com boas práticas AWS.
+#
+# ✔ Controle automático do ciclo de vida.
+#
+# ✔ Preparado para Backup.
+#
+###############################################################################
+#
+# Fluxo de Acesso
+#
+#            Amazon EC2
+#                  │
+#             IAM Role
+#                  │
+#          Bucket Policy
+#                  │
+#          HTTPS Obrigatório
+#                  │
+#             Amazon S3
+#
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 9
+#
+# • Amazon EC2
+# • UserData
+# • CloudWatch Agent
+# • AWS Systems Manager
+# • Elastic IP
+# • Monitoring
+#
+############################################################################### 
+
 
