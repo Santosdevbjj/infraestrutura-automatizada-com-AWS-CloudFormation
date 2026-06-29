@@ -1417,3 +1417,301 @@ Resources:
 
 
 
+###############################################################################
+#
+# Security Group
+#
+###############################################################################
+
+  EC2SecurityGroup:
+
+    Type: AWS::EC2::SecurityGroup
+
+    Properties:
+
+      GroupDescription: >
+        Security Group principal do laboratório AWS CloudFormation.
+
+      GroupName:
+
+        !Sub "${ProjectName}-${Environment}-SG"
+
+      VpcId: !Ref VPC
+
+      SecurityGroupEgress:
+
+        - IpProtocol: -1
+
+          CidrIp: 0.0.0.0/0
+
+          Description: Permite todo o tráfego de saída.
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-SG"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Department
+          Value: !Ref Department
+
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# SSH
+#
+###############################################################################
+
+  SecurityGroupSSH:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 22
+
+      ToPort: 22
+
+      CidrIp: !Ref SSHLocation
+
+      Description: SSH administrativo.
+
+###############################################################################
+#
+# HTTP
+#
+###############################################################################
+
+  SecurityGroupHTTP:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: EnableHTTPCondition
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 80
+
+      ToPort: 80
+
+      CidrIp: 0.0.0.0/0
+
+      Description: HTTP público.
+
+###############################################################################
+#
+# HTTPS
+#
+###############################################################################
+
+  SecurityGroupHTTPS:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: EnableHTTPSCondition
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 443
+
+      ToPort: 443
+
+      CidrIp: 0.0.0.0/0
+
+      Description: HTTPS público.
+
+###############################################################################
+#
+# ICMP (Ping)
+#
+###############################################################################
+
+  SecurityGroupICMP:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: EnableICMPCondition
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: icmp
+
+      FromPort: -1
+
+      ToPort: -1
+
+      CidrIp: 0.0.0.0/0
+
+      Description: ICMP (Ping).
+
+###############################################################################
+#
+# Self Reference
+#
+###############################################################################
+
+  SecurityGroupSelfReference:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: -1
+
+      Description: Comunicação interna entre instâncias.
+
+###############################################################################
+#
+# IPv6 HTTPS
+#
+###############################################################################
+
+  SecurityGroupHTTPSIPv6:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: EnableHTTPSCondition
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 443
+
+      ToPort: 443
+
+      CidrIpv6: "::/0"
+
+      Description: HTTPS IPv6.
+
+###############################################################################
+#
+# IPv6 HTTP
+#
+###############################################################################
+
+  SecurityGroupHTTPIPv6:
+
+    Type: AWS::EC2::SecurityGroupIngress
+
+    Condition: EnableHTTPCondition
+
+    Properties:
+
+      GroupId: !Ref EC2SecurityGroup
+
+      IpProtocol: tcp
+
+      FromPort: 80
+
+      ToPort: 80
+
+      CidrIpv6: "::/0"
+
+      Description: HTTP IPv6.
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Camadas de Segurança
+#
+#                    Internet
+#                        │
+#                 Network ACL
+#                        │
+#                 Security Group
+#                        │
+#                   Amazon EC2
+#
+# A Network ACL protege a subnet.
+#
+# O Security Group protege a instância.
+#
+###############################################################################
+#
+# Portas Permitidas
+#
+# TCP 22  → SSH
+#
+# TCP 80  → HTTP
+#
+# TCP 443 → HTTPS
+#
+# ICMP    → Ping (Opcional)
+#
+###############################################################################
+#
+# Recursos Provisionados nesta Parte
+#
+# ✔ Security Group
+# ✔ Regra SSH
+# ✔ Regra HTTP
+# ✔ Regra HTTPS
+# ✔ Regra ICMP
+# ✔ Self Reference
+# ✔ IPv6 HTTP
+# ✔ IPv6 HTTPS
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Stateful Firewall.
+# ✔ Regras condicionais.
+# ✔ Comunicação interna controlada.
+# ✔ Compatibilidade IPv4 e IPv6.
+# ✔ Tags padronizadas.
+# ✔ Menor privilégio.
+# ✔ Estrutura pronta para ALB e Auto Scaling.
+#
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 7
+#
+# • IAM Role
+# • IAM Policy
+# • Instance Profile
+# • Least Privilege
+# • Amazon SSM
+#
+############################################################################### 
+
+
