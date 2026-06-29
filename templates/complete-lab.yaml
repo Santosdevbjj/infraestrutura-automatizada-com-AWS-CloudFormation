@@ -1715,3 +1715,296 @@ Resources:
 ############################################################################### 
 
 
+###############################################################################
+#
+# IAM Role
+#
+###############################################################################
+
+  EC2IAMRole:
+
+    Type: AWS::IAM::Role
+
+    Properties:
+
+      RoleName:
+
+        !Sub "${ProjectName}-${Environment}-EC2Role"
+
+      Description: >
+
+        IAM Role utilizada pelas instâncias EC2 do laboratório.
+
+      AssumeRolePolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+          - Effect: Allow
+
+            Principal:
+
+              Service:
+
+                - ec2.amazonaws.com
+
+            Action:
+
+              - sts:AssumeRole
+
+      Path: /
+
+      ManagedPolicyArns:
+
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-EC2Role"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# IAM Policy
+#
+###############################################################################
+
+  EC2IAMPolicy:
+
+    Type: AWS::IAM::Policy
+
+    Properties:
+
+      PolicyName:
+
+        !Sub "${ProjectName}-${Environment}-Policy"
+
+      Roles:
+
+        - !Ref EC2IAMRole
+
+      PolicyDocument:
+
+        Version: "2012-10-17"
+
+        Statement:
+
+###############################################################################
+#
+# Amazon S3
+#
+###############################################################################
+
+          - Sid: S3Access
+
+            Effect: Allow
+
+            Action:
+
+              - s3:GetObject
+
+              - s3:PutObject
+
+              - s3:ListBucket
+
+            Resource:
+
+              - !Sub "arn:aws:s3:::${ProjectName}-${Environment}-${AWS::AccountId}"
+
+              - !Sub "arn:aws:s3:::${ProjectName}-${Environment}-${AWS::AccountId}/*"
+
+###############################################################################
+#
+# CloudWatch Logs
+#
+###############################################################################
+
+          - Sid: CloudWatchLogs
+
+            Effect: Allow
+
+            Action:
+
+              - logs:CreateLogGroup
+
+              - logs:CreateLogStream
+
+              - logs:PutLogEvents
+
+            Resource: "*"
+
+###############################################################################
+#
+# CloudWatch Metrics
+#
+###############################################################################
+
+          - Sid: CloudWatchMetrics
+
+            Effect: Allow
+
+            Action:
+
+              - cloudwatch:PutMetricData
+
+            Resource: "*"
+
+###############################################################################
+#
+# EC2 Describe
+#
+###############################################################################
+
+          - Sid: EC2Describe
+
+            Effect: Allow
+
+            Action:
+
+              - ec2:DescribeInstances
+
+              - ec2:DescribeTags
+
+              - ec2:DescribeVolumes
+
+            Resource: "*"
+
+###############################################################################
+#
+# Instance Profile
+#
+###############################################################################
+
+  EC2InstanceProfile:
+
+    Type: AWS::IAM::InstanceProfile
+
+    Properties:
+
+      InstanceProfileName:
+
+        !Sub "${ProjectName}-${Environment}-Profile"
+
+      Path: /
+
+      Roles:
+
+        - !Ref EC2IAMRole
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Fluxo de Autenticação
+#
+#             Amazon EC2
+#                  │
+#                  │
+#          Instance Profile
+#                  │
+#                  │
+#             IAM Role
+#                  │
+#      ┌───────────┼────────────┐
+#      │           │            │
+#      │           │            │
+#     S3      Systems Manager   CloudWatch
+#
+###############################################################################
+#
+# Managed Policies
+#
+# ✔ AmazonSSMManagedInstanceCore
+#
+# ✔ CloudWatchAgentServerPolicy
+#
+###############################################################################
+#
+# Permissões Customizadas
+#
+# ✔ Amazon S3
+#
+# ✔ CloudWatch Logs
+#
+# ✔ CloudWatch Metrics
+#
+# ✔ EC2 Describe
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ IAM Role
+#
+# ✔ IAM Policy
+#
+# ✔ Instance Profile
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Least Privilege
+#
+# ✔ Temporary Credentials
+#
+# ✔ Sem Access Keys
+#
+# ✔ IAM Role para EC2
+#
+# ✔ AWS Systems Manager
+#
+# ✔ CloudWatch Integration
+#
+# ✔ Reutilização
+#
+# ✔ Tags Padronizadas
+#
+###############################################################################
+#
+# Arquitetura
+#
+#                   IAM
+#
+#              IAM Role
+#                   │
+#           Instance Profile
+#                   │
+#              Amazon EC2
+#                   │
+#        Credenciais Temporárias
+#                   │
+#        Serviços AWS Autorizados
+#
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 8
+#
+# • Amazon S3
+# • Bucket
+# • Versionamento
+# • Criptografia SSE-S3
+# • Public Access Block
+# • Bucket Policy
+# • Lifecycle Rules
+#
+############################################################################### 
+
+
+
