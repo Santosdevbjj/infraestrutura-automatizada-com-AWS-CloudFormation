@@ -795,3 +795,279 @@ show_recent_events
 ############################################################################### 
 
 
+###############################################################################
+#
+# Exibir Outputs da Stack
+#
+###############################################################################
+
+show_outputs() {
+
+    section "CloudFormation Outputs"
+
+    aws cloudformation describe-stacks \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        --query "Stacks[0].Outputs" \
+        --output table
+
+}
+
+###############################################################################
+#
+# Recursos Criados
+#
+###############################################################################
+
+show_resources() {
+
+    section "Recursos Provisionados"
+
+    aws cloudformation list-stack-resources \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        --query "StackResourceSummaries[*].[LogicalResourceId,ResourceType,ResourceStatus]" \
+        --output table
+
+}
+
+###############################################################################
+#
+# Tempo de Execução
+#
+###############################################################################
+
+show_execution_time() {
+
+    section "Tempo de Execução"
+
+    END_TIME="$(date +%s)"
+
+    ELAPSED_TIME=$((END_TIME - START_TIME))
+
+    echo "Tempo total: ${ELAPSED_TIME} segundos"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Estatísticas
+#
+###############################################################################
+
+show_statistics() {
+
+    section "Resumo"
+
+    echo "Projeto............. AWS CloudFormation Lab"
+
+    echo "Stack............... ${STACK_NAME}"
+
+    echo "Ambiente............ ${ENVIRONMENT}"
+
+    echo "Região.............. ${REGION}"
+
+    echo "Perfil.............. ${PROFILE}"
+
+    echo "Template............ ${DEPLOY_TEMPLATE}"
+
+    echo "Logs................ ${LOG_FILE}"
+
+    echo "Data................ ${TIMESTAMP}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Próximos Passos
+#
+###############################################################################
+
+next_steps() {
+
+    section "Próximos Passos"
+
+    cat << EOF
+
+✔ Acesse o Console da AWS.
+
+✔ Verifique a Stack CloudFormation.
+
+✔ Analise os Outputs.
+
+✔ Valide a criação dos recursos.
+
+✔ Consulte o CloudWatch Dashboard.
+
+✔ Consulte os Alarmes.
+
+✔ Verifique o Bucket S3.
+
+✔ Conecte-se à EC2 utilizando Session Manager ou SSH.
+
+✔ Faça testes de conectividade.
+
+✔ Consulte os Logs.
+
+EOF
+
+}
+
+###############################################################################
+#
+# Encerramento
+#
+###############################################################################
+
+finish() {
+
+    separator
+
+    echo
+
+    echo -e "${GREEN}"
+
+    echo "Deploy concluído com sucesso."
+
+    echo
+
+    echo "Infrastructure as Code"
+
+    echo "AWS CloudFormation"
+
+    echo "AWS Cloud Foundations"
+
+    echo
+
+    echo "Projeto pronto para demonstração."
+
+    echo
+
+    echo -e "${NC}"
+
+    separator
+
+}
+
+###############################################################################
+#
+# Execução Final
+#
+###############################################################################
+
+show_outputs
+
+show_resources
+
+show_execution_time
+
+show_statistics
+
+next_steps
+
+finish
+
+###############################################################################
+#
+# Checklist Final
+#
+###############################################################################
+#
+# ✔ Ambiente validado
+#
+# ✔ AWS CLI validada
+#
+# ✔ Credenciais verificadas
+#
+# ✔ Região validada
+#
+# ✔ Template validado
+#
+# ✔ Bucket de artefatos criado
+#
+# ✔ Deploy executado
+#
+# ✔ Stack monitorada
+#
+# ✔ Outputs exibidos
+#
+# ✔ Recursos listados
+#
+# ✔ Logs registrados
+#
+# ✔ Tempo de execução calculado
+#
+###############################################################################
+#
+# Compatibilidade
+#
+# ✔ Linux
+# ✔ macOS
+# ✔ WSL
+# ✔ GitHub Actions
+# ✔ AWS CodeBuild
+# ✔ Jenkins
+# ✔ Azure DevOps
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+# ✔ Infrastructure as Code
+#
+# ✔ AWS Well-Architected Framework
+#
+# ✔ Fail Fast
+#
+# ✔ Logging
+#
+# ✔ Tratamento de Erros
+#
+# ✔ Modularização
+#
+# ✔ Reutilização
+#
+# ✔ Observabilidade
+#
+# ✔ Segurança
+#
+###############################################################################
+#
+# Desenvolvido para a Formação
+# AWS Cloud Foundations
+#
+# Projeto:
+# Implementando Infraestrutura Automatizada
+# com AWS CloudFormation
+#
+# 
+#
+# 
+#   
+#
+# 
+#   
+#
+#
+###############################################################################
+#
+# Autor
+#
+# Sérgio Luiz dos Santos
+#
+# GitHub:
+# https://github.com/Santosdevbjj
+#
+###############################################################################
+#
+# END OF FILE
+#
+############################################################################### 
+
+
