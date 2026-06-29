@@ -870,4 +870,317 @@ validate_description
 ############################################################################### 
 
 
+###############################################################################
+#
+# Relatório Final
+#
+###############################################################################
+
+generate_report() {
+
+    section "Relatório de Validação"
+
+    cat << EOF
+
+============================================================
+               RELATÓRIO DE VALIDAÇÃO
+============================================================
+
+Projeto............. AWS CloudFormation Lab
+
+Data................ ${TIMESTAMP}
+
+Diretório........... ${PROJECT_ROOT}
+
+Perfil AWS.......... ${PROFILE}
+
+Região.............. ${REGION}
+
+Arquivo de Log...... ${LOG_FILE}
+
+============================================================
+
+EOF
+
+}
+
+###############################################################################
+#
+# Estatísticas
+#
+###############################################################################
+
+show_statistics() {
+
+    section "Estatísticas"
+
+    local total_templates
+
+    total_templates="${#TEMPLATES[@]}"
+
+    echo "Templates analisados........ ${total_templates}"
+
+    echo "Diretório................... ${TEMPLATE_DIR}"
+
+    echo "Scripts..................... ${SCRIPT_DIR}"
+
+    echo "Logs........................ ${LOG_DIR}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Tempo de Execução
+#
+###############################################################################
+
+show_execution_time() {
+
+    section "Tempo de Execução"
+
+    local end_time
+    local elapsed
+
+    end_time="$(date +%s)"
+
+    elapsed=$((end_time - START_TIME))
+
+    echo "Tempo total................. ${elapsed} segundos"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Checklist Final
+#
+###############################################################################
+
+show_checklist() {
+
+    section "Checklist"
+
+    cat << EOF
+
+✔ AWS CLI instalada
+
+✔ Credenciais AWS válidas
+
+✔ Região validada
+
+✔ Estrutura do projeto validada
+
+✔ Templates encontrados
+
+✔ Permissões verificadas
+
+✔ Sintaxe YAML válida
+
+✔ CloudFormation validate-template executado
+
+✔ Parameters analisados
+
+✔ Ref analisados
+
+✔ GetAtt analisados
+
+✔ ImportValue analisados
+
+✔ Outputs verificados
+
+✔ Tags verificadas
+
+✔ Description verificada
+
+✔ AWSTemplateFormatVersion encontrada
+
+EOF
+
+}
+
+###############################################################################
+#
+# Recomendações
+#
+###############################################################################
+
+show_recommendations() {
+
+    section "Próximos Passos"
+
+    cat << EOF
+
+• Executar scripts/deploy.sh
+
+• Revisar Outputs da Stack
+
+• Validar recursos no Console AWS
+
+• Executar testes de conectividade
+
+• Validar Security Groups
+
+• Revisar IAM Policies
+
+• Monitorar CloudWatch
+
+• Versionar alterações no GitHub
+
+EOF
+
+}
+
+###############################################################################
+#
+# Encerramento
+#
+###############################################################################
+
+finish() {
+
+    separator
+
+    echo
+
+    echo -e "${GREEN}"
+
+    echo "Validação concluída com sucesso."
+
+    echo
+
+    echo "Todos os templates foram analisados."
+
+    echo
+
+    echo "A infraestrutura está pronta para deployment."
+
+    echo
+
+    echo -e "${NC}"
+
+    separator
+
+}
+
+###############################################################################
+#
+# Execução Final
+#
+###############################################################################
+
+generate_report
+
+show_statistics
+
+show_execution_time
+
+show_checklist
+
+show_recommendations
+
+finish
+
+###############################################################################
+#
+# Compatibilidade
+#
+###############################################################################
+#
+# ✔ Linux
+# ✔ macOS
+# ✔ Windows (WSL)
+# ✔ GitHub Actions
+# ✔ AWS CodeBuild
+# ✔ Jenkins
+# ✔ Azure DevOps
+#
+###############################################################################
+#
+# Boas Práticas Implementadas
+#
+###############################################################################
+#
+# ✔ Infrastructure as Code
+#
+# ✔ AWS CloudFormation
+#
+# ✔ AWS Well-Architected Framework
+#
+# ✔ DevOps
+#
+# ✔ Cloud Engineering
+#
+# ✔ Fail Fast
+#
+# ✔ Logging
+#
+# ✔ Tratamento de Erros
+#
+# ✔ Modularização
+#
+# ✔ Reutilização
+#
+# ✔ Observabilidade
+#
+# ✔ Segurança
+#
+###############################################################################
+#
+# Evoluções Futuras
+#
+###############################################################################
+#
+# □ Integração com cfn-lint
+#
+# □ Integração com CloudFormation Guard (cfn-guard)
+#
+# □ Integração com Checkov
+#
+# □ Integração com AWS IAM Access Analyzer
+#
+# □ Relatório HTML
+#
+# □ Exportação JSON
+#
+# □ Exportação Markdown
+#
+# □ Integração com GitHub Actions
+#
+# □ Pipeline AWS CodePipeline
+#
+###############################################################################
+#
+# Desenvolvido para a Formação
+# AWS Cloud Foundations
+#
+# Projeto:
+# Implementando Infraestrutura Automatizada
+# com AWS CloudFormation
+#
+# 
+#
+# 
+#   
+#
+# 
+#   
+#   
+#
+###############################################################################
+#
+# Autor
+#
+# Sérgio Luiz dos Santos
+#
+# GitHub:
+# https://github.com/Santosdevbjj
+#
+###############################################################################
+#
+# END OF FILE
+#
+############################################################################### 
 
