@@ -2981,4 +2981,421 @@ Resources:
 ############################################################################### 
 
 
+###############################################################################
+#
+# Outputs
+#
+###############################################################################
+
+Outputs:
+
+###############################################################################
+#
+# VPC
+#
+###############################################################################
+
+  VPCId:
+
+    Description: ID da VPC criada.
+
+    Value: !Ref VPC
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-VPC"
+
+###############################################################################
+#
+# Internet Gateway
+#
+###############################################################################
+
+  InternetGatewayId:
+
+    Description: Internet Gateway da infraestrutura.
+
+    Value: !Ref InternetGateway
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-IGW"
+
+###############################################################################
+#
+# Public Subnet 1
+#
+###############################################################################
+
+  PublicSubnet1Id:
+
+    Description: Primeira subnet pública.
+
+    Value: !Ref PublicSubnet1
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-PublicSubnet1"
+
+###############################################################################
+#
+# Public Subnet 2
+#
+###############################################################################
+
+  PublicSubnet2Id:
+
+    Description: Segunda subnet pública.
+
+    Value: !Ref PublicSubnet2
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-PublicSubnet2"
+
+###############################################################################
+#
+# Route Table
+#
+###############################################################################
+
+  PublicRouteTableId:
+
+    Description: Route Table pública.
+
+    Value: !Ref PublicRouteTable
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-RouteTable"
+
+###############################################################################
+#
+# Security Group
+#
+###############################################################################
+
+  SecurityGroupId:
+
+    Description: Security Group principal.
+
+    Value: !Ref EC2SecurityGroup
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-SecurityGroup"
+
+###############################################################################
+#
+# IAM Role
+#
+###############################################################################
+
+  IAMRole:
+
+    Description: IAM Role utilizada pela EC2.
+
+    Value:
+
+      !Ref EC2IAMRole
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-IAMRole"
+
+###############################################################################
+#
+# Instance Profile
+#
+###############################################################################
+
+  InstanceProfile:
+
+    Description: Instance Profile.
+
+    Value:
+
+      !Ref EC2InstanceProfile
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-InstanceProfile"
+
+###############################################################################
+#
+# Amazon S3
+#
+###############################################################################
+
+  S3Bucket:
+
+    Description: Bucket utilizado pelo laboratório.
+
+    Value:
+
+      !Ref S3Bucket
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-Bucket"
+
+###############################################################################
+#
+# Amazon EC2
+#
+###############################################################################
+
+  EC2InstanceId:
+
+    Description: Instance ID.
+
+    Value:
+
+      !Ref EC2Instance
+
+    Export:
+
+      Name:
+
+        !Sub "${AWS::StackName}-EC2"
+
+###############################################################################
+#
+# Public IP
+#
+###############################################################################
+
+  PublicIPAddress:
+
+    Description: IP público da EC2.
+
+    Value:
+
+      !GetAtt EC2Instance.PublicIp
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  ElasticIPAddress:
+
+    Condition: CreateElasticIP
+
+    Description: Elastic IP da infraestrutura.
+
+    Value:
+
+      !Ref ElasticIP
+
+###############################################################################
+#
+# CloudWatch Dashboard
+#
+###############################################################################
+
+  DashboardName:
+
+    Description: Dashboard do CloudWatch.
+
+    Value:
+
+      !Ref MonitoringDashboard
+
+###############################################################################
+#
+# CloudWatch Log Group
+#
+###############################################################################
+
+  CloudWatchLogs:
+
+    Description: Grupo de Logs.
+
+    Value:
+
+      !Ref CloudWatchLogGroup
+
+###############################################################################
+#
+# SNS Topic
+#
+###############################################################################
+
+  MonitoringTopicArn:
+
+    Description: ARN do tópico SNS.
+
+    Value:
+
+      !Ref MonitoringTopic
+
+###############################################################################
+#
+# Stack
+#
+###############################################################################
+
+  StackId:
+
+    Description: Stack ID.
+
+    Value:
+
+      !Ref AWS::StackId
+
+###############################################################################
+#
+# Região
+#
+###############################################################################
+
+  AWSRegion:
+
+    Description: Região utilizada.
+
+    Value:
+
+      !Ref AWS::Region
+
+###############################################################################
+#
+# Conta AWS
+#
+###############################################################################
+
+  AWSAccount:
+
+    Description: Conta AWS.
+
+    Value:
+
+      !Ref AWS::AccountId
+
+###############################################################################
+#
+# Documentação
+#
+###############################################################################
+#
+# Recursos Exportados
+#
+# ✔ VPC
+# ✔ Internet Gateway
+# ✔ Public Subnet 1
+# ✔ Public Subnet 2
+# ✔ Route Table
+# ✔ Security Group
+# ✔ IAM Role
+# ✔ Instance Profile
+# ✔ Amazon S3
+# ✔ Amazon EC2
+#
+###############################################################################
+#
+# Cross Stack References
+#
+# Outras stacks poderão utilizar:
+#
+# Fn::ImportValue
+#
+# Exemplo:
+#
+# NetworkStack-VPC
+#
+# NetworkStack-PublicSubnet1
+#
+# NetworkStack-SecurityGroup
+#
+###############################################################################
+#
+# Benefícios
+#
+# ✔ Integração entre stacks.
+# ✔ Infraestrutura reutilizável.
+# ✔ Padronização.
+# ✔ Facilita CI/CD.
+# ✔ Facilita automação.
+# ✔ Infraestrutura modular.
+#
+###############################################################################
+#
+# Boas Práticas AWS
+#
+# ✔ Outputs documentados.
+# ✔ Exports nomeados.
+# ✔ Reutilização.
+# ✔ Modularização.
+# ✔ Escalabilidade.
+# ✔ CloudFormation Ready.
+#
+###############################################################################
+#
+# Projeto Concluído
+#
+# Este laboratório implementa:
+#
+# ✔ Amazon VPC
+# ✔ Internet Gateway
+# ✔ Route Tables
+# ✔ Public Subnets
+# ✔ Network ACL
+# ✔ Security Groups
+# ✔ IAM Role
+# ✔ IAM Policy
+# ✔ Instance Profile
+# ✔ Amazon S3
+# ✔ Amazon EC2
+# ✔ UserData
+# ✔ Elastic IP
+# ✔ CloudWatch
+# ✔ SNS
+# ✔ Outputs
+# ✔ Cross-Stack References
+#
+# Arquitetura pronta para evolução com:
+#
+# ✔ Application Load Balancer
+# ✔ Auto Scaling Group
+# ✔ Amazon RDS
+# ✔ Amazon EFS
+# ✔ AWS Lambda
+# ✔ Amazon ECS
+# ✔ Amazon EKS
+# ✔ AWS CodePipeline
+#
+###############################################################################
+#
+# FIM DO TEMPLATE
+#
+# Infrastructure as Code
+#
+# AWS CloudFormation
+#
+# Well-Architected Framework
+#
+# Desenvolvido seguindo boas práticas profissionais,
+# 
+#
+############################################################################### 
+
 
