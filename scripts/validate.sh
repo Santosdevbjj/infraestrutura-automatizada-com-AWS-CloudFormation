@@ -237,3 +237,319 @@ log_info "Iniciando validação da infraestrutura..."
 # • Validar Permissões dos Scripts
 #
 ###############################################################################
+
+###############################################################################
+#
+# Validação da AWS CLI
+#
+###############################################################################
+
+check_aws_cli() {
+
+    section "Validando AWS CLI"
+
+    check_command aws
+
+    local version
+
+    version="$(aws --version 2>&1)"
+
+    log_success "AWS CLI instalada."
+
+    echo "${version}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Validação das Credenciais AWS
+#
+###############################################################################
+
+check_credentials() {
+
+    section "Validando Credenciais"
+
+    if aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        >/dev/null 2>&1
+    then
+
+        log_success "Credenciais válidas."
+
+    else
+
+        log_error "Credenciais AWS inválidas."
+
+        log_error "Execute: aws configure"
+
+        exit 1
+
+    fi
+
+}
+
+###############################################################################
+#
+# Informações da Conta AWS
+#
+###############################################################################
+
+show_account_information() {
+
+    section "Conta AWS"
+
+    local account
+    local arn
+    local user
+
+    account="$(
+        aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query Account \
+        --output text
+    )"
+
+    arn="$(
+        aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query Arn \
+        --output text
+    )"
+
+    user="$(
+        aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query UserId \
+        --output text
+    )"
+
+    echo "Conta............. ${account}"
+    echo "Usuário........... ${user}"
+    echo "ARN............... ${arn}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Validação da Região
+#
+###############################################################################
+
+check_region() {
+
+    section "Validando Região AWS"
+
+    if aws ec2 describe-regions \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        >/dev/null 2>&1
+    then
+
+        log_success "Região ${REGION} validada."
+
+    else
+
+        log_error "Região inválida."
+
+        exit 1
+
+    fi
+
+}
+
+###############################################################################
+#
+# Estrutura do Projeto
+#
+###############################################################################
+
+check_project_structure() {
+
+    section "Estrutura do Projeto"
+
+    local directories=(
+        templates
+        scripts
+        docs
+        diagrams
+        images
+    )
+
+    for dir in "${directories[@]}"
+    do
+
+        if [[ -d "${PROJECT_ROOT}/${dir}" ]]
+        then
+
+            log_success "Diretório encontrado: ${dir}"
+
+        else
+
+            log_warn "Diretório ausente: ${dir}"
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Existência dos Templates
+#
+###############################################################################
+
+check_templates() {
+
+    section "Templates CloudFormation"
+
+    local missing=0
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        if [[ -f "${TEMPLATE_DIR}/${template}" ]]
+        then
+
+            log_success "${template}"
+
+        else
+
+            log_error "${template} não encontrado."
+
+            missing=$((missing + 1))
+
+        fi
+
+    done
+
+    if [[ "${missing}" -gt 0 ]]
+    then
+
+        log_error "Existem templates ausentes."
+
+        exit 1
+
+    fi
+
+}
+
+###############################################################################
+#
+# Permissões dos Scripts
+#
+###############################################################################
+
+check_script_permissions() {
+
+    section "Permissões"
+
+    local scripts=(
+        deploy.sh
+        validate.sh
+    )
+
+    for script in "${scripts[@]}"
+    do
+
+        if [[ -x "${SCRIPT_DIR}/${script}" ]]
+        then
+
+            log_success "${script} executável."
+
+        else
+
+            log_warn "${script} sem permissão de execução."
+
+            chmod +x "${SCRIPT_DIR}/${script}"
+
+            log_success "Permissão aplicada."
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Espaço em Disco
+#
+###############################################################################
+
+check_disk_space() {
+
+    section "Espaço em Disco"
+
+    df -h "${PROJECT_ROOT}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Variáveis de Ambiente
+#
+###############################################################################
+
+check_environment_variables() {
+
+    section "Variáveis de Ambiente"
+
+    echo "AWS_PROFILE..... ${PROFILE}"
+
+    echo "AWS_REGION...... ${REGION}"
+
+    echo "PROJECT_ROOT.... ${PROJECT_ROOT}"
+
+    echo "TEMPLATE_DIR.... ${TEMPLATE_DIR}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Execução das Validações
+#
+###############################################################################
+
+check_aws_cli
+
+check_credentials
+
+show_account_information
+
+check_region
+
+check_project_structure
+
+check_templates
+
+check_script_permissions
+
+check_disk_space
+
+check_environment_variables
+
+###############################################################################
+#
+# Próxima Parte
+#
+# • Validação da sintaxe YAML
+# • aws cloudformation validate-template
+# • Validação dos parâmetros
+# • Verificação de Ref
+# • Verificação de GetAtt
+# • Verificação de ImportValue
+# • Boas práticas de CloudFormation
+#
+############################################################################### 
+
+
