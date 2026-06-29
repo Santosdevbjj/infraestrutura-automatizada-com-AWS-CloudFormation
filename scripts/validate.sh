@@ -552,4 +552,322 @@ check_environment_variables
 #
 ############################################################################### 
 
+###############################################################################
+#
+# Validação da Sintaxe YAML
+#
+###############################################################################
+
+validate_yaml() {
+
+    section "Validação da Sintaxe YAML"
+
+    check_command python3
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        log_info "Validando ${template}"
+
+        python3 <<EOF
+import yaml
+import sys
+
+try:
+    with open("${TEMPLATE_DIR}/${template}", "r") as f:
+        yaml.safe_load(f)
+    print("OK")
+except Exception as e:
+    print(e)
+    sys.exit(1)
+EOF
+
+        log_success "${template} possui sintaxe YAML válida."
+
+    done
+
+}
+
+###############################################################################
+#
+# CloudFormation Validate Template
+#
+###############################################################################
+
+validate_cloudformation() {
+
+    section "CloudFormation Validate"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        log_info "CloudFormation: ${template}"
+
+        aws cloudformation validate-template \
+            --template-body file://"${TEMPLATE_DIR}/${template}" \
+            --profile "${PROFILE}" \
+            >/dev/null
+
+        log_success "${template} validado."
+
+    done
+
+}
+
+###############################################################################
+#
+# Validação dos Parameters
+#
+###############################################################################
+
+validate_parameters() {
+
+    section "Parameters"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        echo
+
+        echo "Arquivo: ${template}"
+
+        grep "^Parameters:" \
+            "${TEMPLATE_DIR}/${template}" \
+            >/dev/null \
+            && log_success "Parameters encontrados." \
+            || log_warn "Nenhum Parameters encontrado."
+
+    done
+
+}
+
+###############################################################################
+#
+# Ref
+#
+###############################################################################
+
+validate_ref() {
+
+    section "Referências Ref"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        local count
+
+        count=$(grep -c "Ref:" "${TEMPLATE_DIR}/${template}" || true)
+
+        echo "${template}: ${count} referência(s) Ref"
+
+    done
+
+}
+
+###############################################################################
+#
+# GetAtt
+#
+###############################################################################
+
+validate_getatt() {
+
+    section "Referências GetAtt"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        local count
+
+        count=$(grep -c "GetAtt" "${TEMPLATE_DIR}/${template}" || true)
+
+        echo "${template}: ${count} referência(s) GetAtt"
+
+    done
+
+}
+
+###############################################################################
+#
+# ImportValue
+#
+###############################################################################
+
+validate_importvalue() {
+
+    section "ImportValue"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        local count
+
+        count=$(grep -c "ImportValue" "${TEMPLATE_DIR}/${template}" || true)
+
+        echo "${template}: ${count} referência(s) ImportValue"
+
+    done
+
+}
+
+###############################################################################
+#
+# Outputs
+#
+###############################################################################
+
+validate_outputs() {
+
+    section "Outputs"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        if grep "^Outputs:" \
+            "${TEMPLATE_DIR}/${template}" \
+            >/dev/null
+        then
+
+            log_success "${template} possui Outputs."
+
+        else
+
+            log_warn "${template} não possui Outputs."
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+validate_tags() {
+
+    section "Tags"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        if grep "Tags:" \
+            "${TEMPLATE_DIR}/${template}" \
+            >/dev/null
+        then
+
+            log_success "${template} utiliza Tags."
+
+        else
+
+            log_warn "${template} sem Tags."
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Version
+#
+###############################################################################
+
+validate_version() {
+
+    section "Template Version"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        if grep "AWSTemplateFormatVersion" \
+            "${TEMPLATE_DIR}/${template}" \
+            >/dev/null
+        then
+
+            log_success "${template} possui versão."
+
+        else
+
+            log_warn "${template} sem versão."
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Descrição
+#
+###############################################################################
+
+validate_description() {
+
+    section "Description"
+
+    for template in "${TEMPLATES[@]}"
+    do
+
+        if grep "^Description:" \
+            "${TEMPLATE_DIR}/${template}" \
+            >/dev/null
+        then
+
+            log_success "${template} possui Description."
+
+        else
+
+            log_warn "${template} sem Description."
+
+        fi
+
+    done
+
+}
+
+###############################################################################
+#
+# Execução
+#
+###############################################################################
+
+validate_yaml
+
+validate_cloudformation
+
+validate_parameters
+
+validate_ref
+
+validate_getatt
+
+validate_importvalue
+
+validate_outputs
+
+validate_tags
+
+validate_version
+
+validate_description
+
+###############################################################################
+#
+# Próxima Parte
+#
+# • Relatório Final
+# • Estatísticas
+# • Tempo de Execução
+# • Checklist
+# • Próximos Passos
+# • Encerramento
+#
+############################################################################### 
+
+
 
