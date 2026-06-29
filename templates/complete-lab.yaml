@@ -2292,3 +2292,335 @@ Resources:
 ############################################################################### 
 
 
+###############################################################################
+#
+# Amazon EC2 Instance
+#
+###############################################################################
+
+  EC2Instance:
+
+    Type: AWS::EC2::Instance
+
+    Properties:
+
+      ImageId:
+
+        !FindInMap
+
+          - AWSRegionAMI
+
+          - !Ref AWS::Region
+
+          - AMI
+
+      InstanceType:
+
+        !FindInMap
+
+          - EnvironmentConfig
+
+          - !Ref Environment
+
+          - InstanceType
+
+      KeyName: !Ref KeyPairName
+
+      IamInstanceProfile: !Ref EC2InstanceProfile
+
+      Monitoring:
+
+        !If
+
+          - EnableDetailedMonitoringCondition
+          - true
+          - false
+
+      NetworkInterfaces:
+
+        - DeviceIndex: "0"
+
+          AssociatePublicIpAddress: true
+
+          DeleteOnTermination: true
+
+          GroupSet:
+
+            - !Ref EC2SecurityGroup
+
+          SubnetId:
+
+            !Ref PublicSubnet1
+
+###############################################################################
+#
+# Metadata Service
+#
+###############################################################################
+
+      MetadataOptions:
+
+        HttpEndpoint: enabled
+
+        HttpTokens: required
+
+        HttpPutResponseHopLimit: 2
+
+###############################################################################
+#
+# Root Volume
+#
+###############################################################################
+
+      BlockDeviceMappings:
+
+        - DeviceName: /dev/xvda
+
+          Ebs:
+
+            VolumeType: gp3
+
+            VolumeSize: 20
+
+            DeleteOnTermination: true
+
+            Encrypted: true
+
+###############################################################################
+#
+# Tags
+#
+###############################################################################
+
+      Tags:
+
+        - Key: Name
+          Value: !Sub "${ProjectName}-${Environment}-EC2"
+
+        - Key: Project
+          Value: !Ref ProjectName
+
+        - Key: Environment
+          Value: !Ref Environment
+
+        - Key: Owner
+          Value: !Ref Owner
+
+        - Key: Department
+          Value: !Ref Department
+
+        - Key: CostCenter
+          Value: !Ref CostCenter
+
+        - Key: ManagedBy
+          Value: CloudFormation
+
+###############################################################################
+#
+# UserData
+#
+###############################################################################
+
+      UserData:
+
+        Fn::Base64: !Sub |
+
+          #!/bin/bash
+
+          dnf update -y
+
+          dnf install -y amazon-cloudwatch-agent
+
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
+
+          systemctl enable amazon-cloudwatch-agent
+
+          cat <<EOF >/var/www/html/index.html
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+          <title>AWS CloudFormation Lab</title>
+
+          </head>
+
+          <body>
+
+          <h1>Infraestrutura Automatizada com AWS CloudFormation</h1>
+
+          <h2>Projeto GitHub</h2>
+
+          <p>Provisionamento automático realizado com sucesso.</p>
+
+          <p>Projeto desenvolvido seguindo boas práticas AWS.</p>
+
+          </body>
+
+          </html>
+
+          EOF
+
+          dnf install -y httpd
+
+          systemctl enable httpd
+
+          systemctl start httpd
+
+          echo "Bootstrap concluído."
+
+###############################################################################
+#
+# Elastic IP
+#
+###############################################################################
+
+  ElasticIP:
+
+    Type: AWS::EC2::EIP
+
+    Condition: CreateElasticIP
+
+    Properties:
+
+      Domain: vpc
+
+      Tags:
+
+        - Key: Name
+
+          Value:
+
+            !Sub "${ProjectName}-${Environment}-EIP"
+
+###############################################################################
+#
+# Elastic IP Association
+#
+###############################################################################
+
+  ElasticIPAssociation:
+
+    Type: AWS::EC2::EIPAssociation
+
+    Condition: CreateElasticIP
+
+    Properties:
+
+      AllocationId:
+
+        !GetAtt ElasticIP.AllocationId
+
+      InstanceId:
+
+        !Ref EC2Instance
+
+###############################################################################
+#
+# Dependências
+#
+###############################################################################
+
+  EC2DependsOnGateway:
+
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+    DependsOn:
+
+      - AttachGateway
+
+      - PublicSubnet1
+
+      - EC2SecurityGroup
+
+      - EC2InstanceProfile
+
+###############################################################################
+#
+# Arquitetura
+#
+###############################################################################
+#
+# Internet
+#     │
+# Internet Gateway
+#     │
+# Public Subnet
+#     │
+# Security Group
+#     │
+# Amazon EC2
+#     │
+# ├── IAM Role
+# ├── SSM Agent
+# ├── CloudWatch Agent
+# ├── Apache HTTP Server
+# └── Elastic IP (Opcional)
+#
+###############################################################################
+#
+# Recursos Provisionados
+#
+# ✔ Amazon EC2
+# ✔ GP3 Volume
+# ✔ IMDSv2
+# ✔ IAM Instance Profile
+# ✔ UserData
+# ✔ Apache
+# ✔ SSM
+# ✔ CloudWatch Agent
+# ✔ Elastic IP
+#
+###############################################################################
+#
+# Segurança
+#
+# ✔ IMDSv2 obrigatório
+#
+# ✔ EBS criptografado
+#
+# ✔ Credenciais temporárias
+#
+# ✔ IAM Role
+#
+# ✔ Security Group
+#
+# ✔ Network ACL
+#
+###############################################################################
+#
+# Boas Práticas
+#
+# ✔ Bootstrap automático
+#
+# ✔ Infrastructure as Code
+#
+# ✔ Monitoramento
+#
+# ✔ Tags corporativas
+#
+# ✔ Volume GP3
+#
+# ✔ Criptografia
+#
+# ✔ Provisionamento reproduzível
+#
+###############################################################################
+#
+# Próxima Parte
+#
+# Parte 10
+#
+# • CloudWatch Dashboard
+# • CloudWatch Log Group
+# • Alarmes
+# • SNS Notifications
+# • Monitoramento completo
+#
+############################################################################### 
+
+
+
