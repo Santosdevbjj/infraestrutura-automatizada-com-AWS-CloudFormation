@@ -289,3 +289,266 @@ log_info "Inicializando processo de deployment..."
 # • Criar Bucket de Artefatos
 #
 ###############################################################################
+
+###############################################################################
+#
+# Validação da AWS CLI
+#
+###############################################################################
+
+check_aws_cli() {
+
+    section "Validando AWS CLI"
+
+    check_command aws
+
+    local version
+
+    version="$(aws --version 2>&1)"
+
+    log_success "AWS CLI encontrada."
+
+    echo "${version}"
+
+}
+
+###############################################################################
+#
+# Verificação das Credenciais AWS
+#
+###############################################################################
+
+check_aws_credentials() {
+
+    section "Validando Credenciais AWS"
+
+    if aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        >/dev/null 2>&1
+    then
+
+        log_success "Credenciais válidas."
+
+    else
+
+        log_error "Credenciais AWS inválidas."
+
+        log_error "Execute: aws configure"
+
+        exit 1
+
+    fi
+
+}
+
+###############################################################################
+#
+# Informações da Conta AWS
+#
+###############################################################################
+
+show_account_information() {
+
+    section "Conta AWS"
+
+    local account
+
+    local arn
+
+    local user
+
+    account="$(aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query Account \
+        --output text)"
+
+    arn="$(aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query Arn \
+        --output text)"
+
+    user="$(aws sts get-caller-identity \
+        --profile "${PROFILE}" \
+        --query UserId \
+        --output text)"
+
+    echo "Conta AWS......: ${account}"
+
+    echo "Usuário........: ${user}"
+
+    echo "ARN............: ${arn}"
+
+    echo
+
+}
+
+###############################################################################
+#
+# Validação da Região
+#
+###############################################################################
+
+check_region() {
+
+    section "Validando Região"
+
+    if aws ec2 describe-regions \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        >/dev/null 2>&1
+    then
+
+        log_success "Região ${REGION} disponível."
+
+    else
+
+        log_error "Região inválida."
+
+        exit 1
+
+    fi
+
+}
+
+###############################################################################
+#
+# Validação do Template CloudFormation
+#
+###############################################################################
+
+validate_template() {
+
+    section "Validando Template"
+
+    if [[ ! -f "${TEMPLATE_FILE}" ]]
+    then
+
+        log_error "Template não encontrado."
+
+        log_error "${TEMPLATE_FILE}"
+
+        exit 1
+
+    fi
+
+    aws cloudformation validate-template \
+        --template-body "file://${TEMPLATE_FILE}" \
+        --profile "${PROFILE}" \
+        >/dev/null
+
+    log_success "Template validado com sucesso."
+
+}
+
+###############################################################################
+#
+# Verificação da Stack
+#
+###############################################################################
+
+check_stack() {
+
+    section "Verificando Stack"
+
+    if aws cloudformation describe-stacks \
+        --stack-name "${STACK_NAME}" \
+        --region "${REGION}" \
+        --profile "${PROFILE}" \
+        >/dev/null 2>&1
+    then
+
+        log_warn "Stack existente."
+
+        STACK_EXISTS=true
+
+    else
+
+        log_info "Nova Stack será criada."
+
+        STACK_EXISTS=false
+
+    fi
+
+}
+
+###############################################################################
+#
+# Bucket de Artefatos
+#
+###############################################################################
+
+ARTIFACT_BUCKET="${STACK_NAME}-artifacts-${REGION}"
+
+create_artifact_bucket() {
+
+    section "Bucket de Artefatos"
+
+    if aws s3api head-bucket \
+        --bucket "${ARTIFACT_BUCKET}" \
+        >/dev/null 2>&1
+    then
+
+        log_success "Bucket já existe."
+
+    else
+
+        log_info "Criando bucket..."
+
+        if [[ "${REGION}" == "us-east-1" ]]
+        then
+
+            aws s3 mb \
+                "s3://${ARTIFACT_BUCKET}" \
+                --profile "${PROFILE}"
+
+        else
+
+            aws s3api create-bucket \
+                --bucket "${ARTIFACT_BUCKET}" \
+                --region "${REGION}" \
+                --create-bucket-configuration \
+                LocationConstraint="${REGION}" \
+                --profile "${PROFILE}"
+
+        fi
+
+        log_success "Bucket criado."
+
+    fi
+
+}
+
+###############################################################################
+#
+# Execução das Validações
+#
+###############################################################################
+
+check_aws_cli
+
+check_aws_credentials
+
+show_account_information
+
+check_region
+
+validate_template
+
+check_stack
+
+create_artifact_bucket
+
+###############################################################################
+#
+# Próxima Parte
+#
+# • CloudFormation Package
+# • Upload para Amazon S3
+# • CloudFormation Deploy
+# • CAPABILITY_IAM
+# • CAPABILITY_NAMED_IAM
+# • Tratamento de Rollback
+#
+############################################################################### 
+
+
