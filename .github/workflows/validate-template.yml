@@ -1,0 +1,115 @@
+################################################################################
+#
+# Projeto:
+# Implementando Infraestrutura Automatizada com AWS CloudFormation
+#
+# Workflow:
+# validate-template.yml
+#
+# Objetivo:
+# Pipeline de Integração Contínua responsável pela validação da infraestrutura
+# como código (Infrastructure as Code - IaC).
+#
+# Etapas:
+#
+# • Checkout do repositório
+# • Instalação das dependências
+# • Validação da sintaxe YAML
+# • Validação dos templates CloudFormation
+# • Execução do validate.sh
+# • ShellCheck
+# • Upload dos artefatos
+# • Geração de relatório
+#
+# Boas práticas:
+#
+# ✔ Infrastructure as Code
+# ✔ DevOps
+# ✔ GitHub Actions
+# ✔ AWS Well-Architected Framework
+# ✔ Cloud Engineering
+# ✔ Shift Left
+#
+################################################################################
+
+name: CloudFormation Template Validation
+
+################################################################################
+# Triggers
+################################################################################
+
+on:
+
+  push:
+
+    branches:
+      - main
+      - develop
+
+    paths:
+      - "templates/**"
+      - "scripts/**"
+      - ".github/workflows/**"
+
+  pull_request:
+
+    branches:
+      - main
+      - develop
+
+  workflow_dispatch:
+
+################################################################################
+# Permissões
+################################################################################
+
+permissions:
+
+  contents: read
+
+  actions: read
+
+  checks: write
+
+################################################################################
+# Concurrency
+################################################################################
+
+concurrency:
+
+  group: cloudformation-validation-${{ github.ref }}
+
+  cancel-in-progress: true
+
+################################################################################
+# Variáveis Globais
+################################################################################
+
+env:
+
+  AWS_REGION: us-east-1
+
+  PYTHON_VERSION: "3.12"
+
+  TEMPLATE_DIRECTORY: templates
+
+  SCRIPT_DIRECTORY: scripts
+
+  LOG_DIRECTORY: logs
+
+  ARTIFACT_NAME: validation-report
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Job validation
+# • Ubuntu Latest
+# • Checkout
+# • Configuração do Python
+# • Instalação da AWS CLI
+# • Instalação do cfn-lint
+# • Instalação do yq
+# • Instalação do ShellCheck
+#
+################################################################################
