@@ -234,14 +234,6 @@ Este projeto demonstra:
 - integração com Security Hub AWS
 - arquitetura multi-account AWS
 
----
-
-## 👨‍💻 Autor
-
-**Sérgio Luiz dos Santos**
-
-- GitHub: https://github.com/Santosdevbjj
-- Área: Cloud Engineering | DevOps | IaC | Security
 
 ---
 
