@@ -1,0 +1,134 @@
+################################################################################
+#
+# Projeto:
+# Implementando Infraestrutura Automatizada com AWS CloudFormation
+#
+# Workflow:
+# deploy.yml
+#
+# Objetivo:
+#
+# Automatizar o deployment da infraestrutura AWS utilizando
+# CloudFormation em um pipeline de Continuous Delivery (CD).
+#
+# Este workflow executa:
+#
+# • Checkout do repositório
+# • Validação dos templates
+# • Instalação das ferramentas
+# • Deploy da Stack
+# • Monitoramento da execução
+# • Exportação dos Outputs
+# • Publicação dos artefatos
+#
+# Formação:
+# AWS Cloud Foundations
+#
+################################################################################
+
+name: AWS CloudFormation Deploy
+
+################################################################################
+# Eventos
+################################################################################
+
+on:
+
+  workflow_dispatch:
+
+    inputs:
+
+      environment:
+
+        description: "Ambiente de destino"
+
+        required: true
+
+        default: dev
+
+        type: choice
+
+        options:
+          - dev
+          - homolog
+          - production
+
+      stack-name:
+
+        description: "Nome da CloudFormation Stack"
+
+        required: true
+
+        default: cloudformation-lab
+
+      aws-region:
+
+        description: "Região AWS"
+
+        required: true
+
+        default: us-east-1
+
+################################################################################
+# Permissões
+################################################################################
+
+permissions:
+
+  id-token: write
+
+  contents: read
+
+  actions: read
+
+  checks: write
+
+################################################################################
+# Concurrency
+################################################################################
+
+concurrency:
+
+  group: deploy-${{ github.ref }}
+
+  cancel-in-progress: false
+
+################################################################################
+# Variáveis Globais
+################################################################################
+
+env:
+
+  AWS_REGION: ${{ github.event.inputs.aws-region }}
+
+  STACK_NAME: ${{ github.event.inputs.stack-name }}
+
+  ENVIRONMENT: ${{ github.event.inputs.environment }}
+
+  TEMPLATE_FILE: templates/complete-lab.yaml
+
+  TEMPLATE_DIRECTORY: templates
+
+  SCRIPT_DIRECTORY: scripts
+
+  LOG_DIRECTORY: logs
+
+  ARTIFACT_DIRECTORY: artifacts
+
+  PYTHON_VERSION: "3.12"
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Job Deploy
+# • Runner Ubuntu
+# • Checkout
+# • Setup Python
+# • Cache
+# • AWS CLI
+# • cfn-lint
+# • yq
+# • ShellCheck
+#
+################################################################################
