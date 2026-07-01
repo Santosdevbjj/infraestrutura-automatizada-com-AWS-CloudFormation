@@ -1,0 +1,50 @@
+[
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t3.micro"
+  },
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PublicSubnetCIDR",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnetCIDR",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "KeyPairName",
+    "ParameterValue": "my-lab-key"
+  },
+  {
+    "ParameterKey": "EnableMonitoring",
+    "ParameterValue": "true"
+  },
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "cloudformation-lab"
+  },
+  {
+    "ParameterKey": "Owner",
+    "ParameterValue": "devops-team"
+  },
+  {
+    "ParameterKey": "AutoScalingMinSize",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "AutoScalingMaxSize",
+    "ParameterValue": "3"
+  },
+  {
+    "ParameterKey": "DesiredCapacity",
+    "ParameterValue": "2"
+  }
+]
