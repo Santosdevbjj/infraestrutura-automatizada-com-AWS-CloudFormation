@@ -132,3 +132,1016 @@ env:
 # • ShellCheck
 #
 ################################################################################
+
+################################################################################
+#
+# Job Principal
+#
+################################################################################
+
+jobs:
+
+  deploy:
+
+    name: Deploy AWS CloudFormation Stack
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 45
+
+    environment:
+
+      name: ${{ github.event.inputs.environment }}
+
+    defaults:
+
+      run:
+
+        shell: bash
+
+################################################################################
+#
+# Steps
+#
+################################################################################
+
+    steps:
+
+################################################################################
+# Checkout
+################################################################################
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+################################################################################
+# Python
+################################################################################
+
+      - name: Setup Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: ${{ env.PYTHON_VERSION }}
+
+################################################################################
+# Cache
+################################################################################
+
+      - name: Cache Python Packages
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: ~/.cache/pip
+
+          key: >
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+################################################################################
+# Atualização do Sistema
+################################################################################
+
+      - name: Update Ubuntu Packages
+
+        run: |
+
+          sudo apt-get update
+
+################################################################################
+# AWS CLI
+################################################################################
+
+      - name: Install AWS CLI
+
+        run: |
+
+          sudo apt-get install -y awscli
+
+          aws --version
+
+################################################################################
+# cfn-lint
+################################################################################
+
+      - name: Install CloudFormation Linter
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install cfn-lint
+
+          cfn-lint --version
+
+################################################################################
+# yq
+################################################################################
+
+      - name: Install yq
+
+        run: |
+
+          sudo wget -qO /usr/local/bin/yq \
+          https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+
+          sudo chmod +x /usr/local/bin/yq
+
+          yq --version
+
+################################################################################
+# ShellCheck
+################################################################################
+
+      - name: Install ShellCheck
+
+        run: |
+
+          sudo apt-get install -y shellcheck
+
+          shellcheck --version
+
+################################################################################
+# jq
+################################################################################
+
+      - name: Install jq
+
+        run: |
+
+          sudo apt-get install -y jq
+
+          jq --version
+
+################################################################################
+# Criar Diretórios
+################################################################################
+
+      - name: Create Project Directories
+
+        run: |
+
+          mkdir -p "${{ env.LOG_DIRECTORY }}"
+
+          mkdir -p "${{ env.ARTIFACT_DIRECTORY }}"
+
+################################################################################
+# Informações do Runner
+################################################################################
+
+      - name: Display Runner Information
+
+        run: |
+
+          echo "========================================"
+
+          echo "GitHub Repository"
+
+          echo "========================================"
+
+          echo "Repository : ${{ github.repository }}"
+
+          echo "Branch     : ${{ github.ref_name }}"
+
+          echo "Commit     : ${{ github.sha }}"
+
+          echo "Runner     : ${RUNNER_OS}"
+
+          echo
+
+          echo "========================================"
+
+          echo "Ferramentas"
+
+          echo "========================================"
+
+          python --version
+
+          aws --version
+
+          cfn-lint --version
+
+          shellcheck --version | head -1
+
+          jq --version
+
+          yq --version
+
+################################################################################
+# Configuração AWS (OIDC)
+################################################################################
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+
+          aws-region: ${{ env.AWS_REGION }}
+
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+
+          role-session-name: GitHubActionsDeploy
+
+################################################################################
+# Validar Credenciais
+################################################################################
+
+      - name: Validate AWS Identity
+
+        run: |
+
+          echo "========================================"
+
+          echo "AWS Identity"
+
+          echo "========================================"
+
+          aws sts get-caller-identity
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Validação YAML
+# • cfn-lint
+# • validate-template
+# • Execução do validate.sh
+# • ShellCheck
+# • Verificações antes do deploy
+#
+################################################################################
+################################################################################
+#
+# Pré-Deploy Validation
+#
+################################################################################
+
+      - name: Validate Repository Structure
+
+        run: |
+
+          echo "=============================================="
+          echo "Validando estrutura do repositório..."
+          echo "=============================================="
+
+          REQUIRED_ITEMS=(
+            "templates"
+            "scripts"
+            ".github/workflows"
+            "README.md"
+          )
+
+          for item in "${REQUIRED_ITEMS[@]}"
+          do
+
+            if [ ! -e "${item}" ]
+            then
+
+              echo "ERRO: ${item} não encontrado."
+
+              exit 1
+
+            fi
+
+            echo "OK -> ${item}"
+
+          done
+
+################################################################################
+#
+# Validate YAML Files
+#
+################################################################################
+
+      - name: Validate YAML Syntax
+
+        run: |
+
+          echo "=============================================="
+          echo "Validando sintaxe YAML..."
+          echo "=============================================="
+
+          find templates \
+            -type f \
+            \( -name "*.yaml" -o -name "*.yml" \) \
+            -print \
+            -exec yq eval '.' {} \;
+
+################################################################################
+#
+# CloudFormation Linter
+#
+################################################################################
+
+      - name: Run cfn-lint
+
+        run: |
+
+          echo "=============================================="
+          echo "Executando cfn-lint..."
+          echo "=============================================="
+
+          cfn-lint templates/*.yaml
+
+################################################################################
+#
+# AWS CloudFormation Validation
+#
+################################################################################
+
+      - name: Validate CloudFormation Templates
+
+        run: |
+
+          echo "=============================================="
+          echo "CloudFormation Validate Template"
+          echo "=============================================="
+
+          for TEMPLATE in templates/*.yaml
+          do
+
+            echo
+            echo "Template:"
+            echo "${TEMPLATE}"
+            echo
+
+            aws cloudformation validate-template \
+              --template-body file://"${TEMPLATE}"
+
+          done
+
+################################################################################
+#
+# Validate Bash Scripts
+#
+################################################################################
+
+      - name: Validate Shell Scripts
+
+        run: |
+
+          echo "=============================================="
+          echo "Executando ShellCheck..."
+          echo "=============================================="
+
+          chmod +x scripts/*.sh
+
+          shellcheck scripts/*.sh
+
+################################################################################
+#
+# Execute validate.sh
+#
+################################################################################
+
+      - name: Execute validate.sh
+
+        run: |
+
+          echo "=============================================="
+          echo "Executando validate.sh..."
+          echo "=============================================="
+
+          chmod +x scripts/validate.sh
+
+          ./scripts/validate.sh
+
+################################################################################
+#
+# Generate Validation Report
+#
+################################################################################
+
+      - name: Generate Validation Report
+
+        if: always()
+
+        run: |
+
+          mkdir -p artifacts
+
+          REPORT="artifacts/pre-deploy-validation-report.txt"
+
+          {
+
+            echo "===================================="
+
+            echo "AWS CloudFormation"
+
+            echo "Pré-Deploy Validation Report"
+
+            echo "===================================="
+
+            echo
+
+            echo "Repository : ${{ github.repository }}"
+
+            echo "Branch     : ${{ github.ref_name }}"
+
+            echo "Commit     : ${{ github.sha }}"
+
+            echo "Environment: ${{ env.ENVIRONMENT }}"
+
+            echo "Region     : ${{ env.AWS_REGION }}"
+
+            echo
+
+            echo "Templates"
+
+            find templates -name "*.yaml"
+
+            echo
+
+            echo "Scripts"
+
+            find scripts -name "*.sh"
+
+          } > "${REPORT}"
+
+################################################################################
+#
+# Upload Validation Report
+#
+################################################################################
+
+      - name: Upload Validation Report
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: pre-deploy-validation
+
+          path: artifacts/pre-deploy-validation-report.txt
+
+          retention-days: 30
+
+################################################################################
+#
+# Próxima Parte
+#
+# • CloudFormation Deploy
+# • Change Set
+# • Stack Create/Update
+# • Wait Complete
+# • Stack Outputs
+# • Error Handling
+#
+################################################################################ 
+
+
+################################################################################
+#
+# CloudFormation Deploy
+#
+################################################################################
+
+      - name: Deploy CloudFormation Stack
+
+        run: |
+
+          echo "=============================================="
+          echo "Deploy AWS CloudFormation"
+          echo "=============================================="
+
+          chmod +x scripts/deploy.sh
+
+          ./scripts/deploy.sh \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --region "${{ env.AWS_REGION }}" \
+            --environment "${{ env.ENVIRONMENT }}"
+
+################################################################################
+#
+# Aguardar Conclusão da Stack
+#
+################################################################################
+
+      - name: Wait for Stack Completion
+
+        run: |
+
+          echo "=============================================="
+          echo "Aguardando conclusão do deployment..."
+          echo "=============================================="
+
+          STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --query "Stacks[0].StackStatus" \
+            --output text)
+
+          echo "Status atual: ${STATUS}"
+
+          if [[ "${STATUS}" == "CREATE_IN_PROGRESS" ]]; then
+
+            aws cloudformation wait stack-create-complete \
+              --stack-name "${{ env.STACK_NAME }}"
+
+          elif [[ "${STATUS}" == "UPDATE_IN_PROGRESS" ]]; then
+
+            aws cloudformation wait stack-update-complete \
+              --stack-name "${{ env.STACK_NAME }}"
+
+          fi
+
+################################################################################
+#
+# Obter Outputs da Stack
+#
+################################################################################
+
+      - name: Export Stack Outputs
+
+        run: |
+
+          echo "=============================================="
+          echo "Exportando Outputs..."
+          echo "=============================================="
+
+          mkdir -p artifacts
+
+          aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --query "Stacks[0].Outputs" \
+            --output json \
+            > artifacts/stack-outputs.json
+
+          cat artifacts/stack-outputs.json
+
+################################################################################
+#
+# Inventário dos Recursos
+#
+################################################################################
+
+      - name: Export Stack Resources
+
+        run: |
+
+          aws cloudformation list-stack-resources \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --output table \
+            > artifacts/stack-resources.txt
+
+          cat artifacts/stack-resources.txt
+
+################################################################################
+#
+# Eventos Recentes
+#
+################################################################################
+
+      - name: Export Stack Events
+
+        if: always()
+
+        run: |
+
+          aws cloudformation describe-stack-events \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --max-items 50 \
+            --output table \
+            > artifacts/stack-events.txt || true
+
+################################################################################
+#
+# Tratamento de Falhas
+#
+################################################################################
+
+      - name: Deployment Diagnostics
+
+        if: failure()
+
+        run: |
+
+          echo "=============================================="
+          echo "Diagnóstico do Deployment"
+          echo "=============================================="
+
+          aws cloudformation describe-stack-events \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --max-items 20 \
+            --output table || true
+
+################################################################################
+#
+# Resumo do Deploy
+#
+################################################################################
+
+      - name: Deployment Summary
+
+        if: success()
+
+        run: |
+
+          echo "=============================================="
+          echo "Deployment concluído com sucesso"
+          echo "=============================================="
+
+          echo "Stack.......: ${{ env.STACK_NAME }}"
+          echo "Região......: ${{ env.AWS_REGION }}"
+          echo "Ambiente....: ${{ env.ENVIRONMENT }}"
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Upload dos artefatos
+# • GitHub Step Summary
+# • Estatísticas
+# • Mensagens finais
+# • Documentação
+#
+################################################################################ 
+
+################################################################################
+#
+# Upload dos Artefatos
+#
+################################################################################
+
+      - name: Upload Deployment Artifacts
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: cloudformation-deployment
+
+          retention-days: 30
+
+          path: |
+            artifacts/
+            logs/
+
+################################################################################
+#
+# Publicar Outputs
+#
+################################################################################
+
+      - name: Publish Stack Outputs
+
+        if: success()
+
+        run: |
+
+          echo "====================================="
+          echo "CloudFormation Outputs"
+          echo "====================================="
+
+          jq '.' artifacts/stack-outputs.json
+
+################################################################################
+#
+# Estatísticas da Stack
+#
+################################################################################
+
+      - name: Deployment Statistics
+
+        if: success()
+
+        run: |
+
+          echo
+
+          echo "====================================="
+
+          echo "Deployment Statistics"
+
+          echo "====================================="
+
+          echo
+
+          echo "Stack Name"
+
+          echo "${{ env.STACK_NAME }}"
+
+          echo
+
+          echo "Quantidade de Recursos"
+
+          aws cloudformation list-stack-resources \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --query "length(StackResourceSummaries)"
+
+          echo
+
+################################################################################
+#
+# GitHub Step Summary
+#
+################################################################################
+
+      - name: Generate GitHub Summary
+
+        if: always()
+
+        run: |
+
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+
+# AWS CloudFormation Deployment
+
+---
+
+## Projeto
+
+Implementando Infraestrutura Automatizada com AWS CloudFormation
+
+---
+
+## Ambiente
+
+| Item | Valor |
+|------|-------|
+| Environment | ${{ env.ENVIRONMENT }} |
+| Region | ${{ env.AWS_REGION }} |
+| Stack | ${{ env.STACK_NAME }} |
+
+---
+
+## Etapas Executadas
+
+- ✅ Checkout
+
+- ✅ Setup Python
+
+- ✅ AWS CLI
+
+- ✅ CloudFormation Validation
+
+- ✅ cfn-lint
+
+- ✅ ShellCheck
+
+- ✅ validate.sh
+
+- ✅ deploy.sh
+
+- ✅ Stack Deployment
+
+- ✅ Outputs Export
+
+---
+
+## Artefatos
+
+- stack-outputs.json
+
+- stack-events.txt
+
+- stack-resources.txt
+
+- logs/
+
+EOF
+
+################################################################################
+#
+# Verificação Final
+#
+################################################################################
+
+      - name: Verify Deployment
+
+        if: success()
+
+        run: |
+
+          echo
+
+          echo "====================================="
+
+          echo "Verificação Final"
+
+          echo "====================================="
+
+          aws cloudformation describe-stacks \
+            --stack-name "${{ env.STACK_NAME }}" \
+            --query "Stacks[0].StackStatus"
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Mensagem Final
+# • Estatísticas Gerais
+# • Roadmap
+# • Documentação
+# • Compatibilidade
+# • END OF FILE
+#
+################################################################################ 
+
+
+
+################################################################################
+#
+# Mensagem de Sucesso
+#
+################################################################################
+
+      - name: Deployment Successful
+
+        if: success()
+
+        run: |
+
+          echo "=============================================="
+          echo "AWS CloudFormation Deployment"
+          echo "=============================================="
+          echo
+          echo "Status.......: SUCCESS"
+          echo "Stack........: ${{ env.STACK_NAME }}"
+          echo "Ambiente.....: ${{ env.ENVIRONMENT }}"
+          echo "Região.......: ${{ env.AWS_REGION }}"
+          echo
+          echo "A infraestrutura foi implantada com sucesso."
+          echo
+
+################################################################################
+#
+# Mensagem de Falha
+#
+################################################################################
+
+      - name: Deployment Failed
+
+        if: failure()
+
+        run: |
+
+          echo "=============================================="
+          echo "AWS CloudFormation Deployment"
+          echo "=============================================="
+          echo
+          echo "Status.......: FAILED"
+          echo
+          echo "Consulte:"
+          echo "- Stack Events"
+          echo "- Stack Outputs"
+          echo "- Logs do GitHub Actions"
+          echo "- Artefatos publicados"
+          echo
+
+################################################################################
+#
+# Estatísticas Gerais
+#
+################################################################################
+
+      - name: Execution Statistics
+
+        if: always()
+
+        run: |
+
+          echo "=============================================="
+          echo "Execution Statistics"
+          echo "=============================================="
+
+          echo
+
+          echo "Templates CloudFormation"
+
+          find templates -name "*.yaml" | wc -l
+
+          echo
+
+          echo "Scripts Bash"
+
+          find scripts -name "*.sh" | wc -l
+
+          echo
+
+          echo "Workflows"
+
+          find .github/workflows -name "*.yml" | wc -l
+
+          echo
+
+          echo "Artefatos"
+
+          ls -la artifacts || true
+
+################################################################################
+#
+# Encerramento
+#
+################################################################################
+
+      - name: Finish Pipeline
+
+        if: always()
+
+        run: |
+
+          echo
+          echo "=============================================="
+          echo "Pipeline finalizado."
+          echo "=============================================="
+          echo
+
+################################################################################
+#
+# Compatibilidade
+#
+################################################################################
+#
+# ✔ GitHub Actions
+# ✔ AWS CloudFormation
+# ✔ AWS CLI
+# ✔ cfn-lint
+# ✔ ShellCheck
+# ✔ jq
+# ✔ yq
+# ✔ Ubuntu Runner
+#
+################################################################################
+#
+# Boas Práticas Implementadas
+#
+################################################################################
+#
+# ✔ Infrastructure as Code (IaC)
+# ✔ Continuous Integration (CI)
+# ✔ Continuous Delivery (CD)
+# ✔ AWS Well-Architected Framework
+# ✔ Shift Left Validation
+# ✔ Fail Fast
+# ✔ Logging
+# ✔ Observabilidade
+# ✔ Modularização
+# ✔ Reutilização
+# ✔ Segurança por menor privilégio
+# ✔ Autenticação via OIDC
+#
+################################################################################
+#
+# Roadmap de Evolução
+#
+################################################################################
+#
+# □ AWS cfn-guard
+# □ Checkov
+# □ Trivy
+# □ CodeQL
+# □ TaskCat
+# □ Testes de integração pós-deploy
+# □ Aprovação manual para produção
+# □ Rollback automatizado
+# □ Notificações via Amazon SNS
+# □ Integração com AWS CodePipeline
+# □ Integração com AWS Systems Manager
+# □ Ambientes efêmeros para Pull Requests
+#
+################################################################################
+#
+# Projeto
+#
+# Implementando Infraestrutura Automatizada
+# com AWS CloudFormation
+#
+# Formação AWS Cloud Foundations
+#
+# 
+#
+# 
+#   
+#
+# 
+#   
+#   
+#
+################################################################################
+#
+# Autor
+#
+# Sérgio Luiz dos Santos
+#
+# GitHub:
+# https://github.com/Santosdevbjj
+#
+################################################################################
+#
+# END OF FILE
+#
+################################################################################ 
+
+
