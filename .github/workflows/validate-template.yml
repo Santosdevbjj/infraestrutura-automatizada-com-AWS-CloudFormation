@@ -113,3 +113,600 @@ env:
 # • Instalação do ShellCheck
 #
 ################################################################################
+
+################################################################################
+#
+# Job Principal
+#
+################################################################################
+
+jobs:
+
+  validate:
+
+    name: Validate CloudFormation Infrastructure
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    defaults:
+
+      run:
+
+        shell: bash
+
+    steps:
+
+################################################################################
+#
+# Checkout
+#
+################################################################################
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+################################################################################
+#
+# Python
+#
+################################################################################
+
+      - name: Setup Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: ${{ env.PYTHON_VERSION }}
+
+################################################################################
+#
+# Cache do Pip
+#
+################################################################################
+
+      - name: Cache pip packages
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: ~/.cache/pip
+
+          key: >
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+################################################################################
+#
+# Atualizar Sistema
+#
+################################################################################
+
+      - name: Update Packages
+
+        run: |
+
+          sudo apt-get update
+
+################################################################################
+#
+# Instalar AWS CLI
+#
+################################################################################
+
+      - name: Install AWS CLI
+
+        run: |
+
+          sudo apt-get install -y awscli
+
+          aws --version
+
+################################################################################
+#
+# Instalar cfn-lint
+#
+################################################################################
+
+      - name: Install cfn-lint
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install cfn-lint
+
+          cfn-lint --version
+
+################################################################################
+#
+# Instalar yq
+#
+################################################################################
+
+      - name: Install yq
+
+        run: |
+
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+
+          sudo chmod +x /usr/local/bin/yq
+
+          yq --version
+
+################################################################################
+#
+# Instalar ShellCheck
+#
+################################################################################
+
+      - name: Install ShellCheck
+
+        run: |
+
+          sudo apt-get install -y shellcheck
+
+          shellcheck --version
+
+################################################################################
+#
+# Criar Diretório de Logs
+#
+################################################################################
+
+      - name: Create Log Directory
+
+        run: |
+
+          mkdir -p "${{ env.LOG_DIRECTORY }}"
+
+################################################################################
+#
+# Exibir Informações do Ambiente
+#
+################################################################################
+
+      - name: Environment Information
+
+        run: |
+
+          echo "Repository : ${{ github.repository }}"
+
+          echo "Branch     : ${{ github.ref_name }}"
+
+          echo "Commit     : ${{ github.sha }}"
+
+          echo "Runner     : $RUNNER_OS"
+
+          echo "Python     : $(python --version)"
+
+          echo "AWS CLI    : $(aws --version)"
+
+          echo "cfn-lint   : $(cfn-lint --version)"
+
+          echo "ShellCheck : $(shellcheck --version | head -1)"
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Validação da sintaxe YAML
+# • Execução do cfn-lint
+# • CloudFormation validate-template
+# • Execução do validate.sh
+# • ShellCheck
+# • Coleta dos logs
+#
+################################################################################ 
+
+
+################################################################################
+#
+# Validação da Sintaxe YAML
+#
+################################################################################
+
+      - name: Validate YAML Syntax
+
+        run: |
+
+          echo "========================================"
+          echo "Validando sintaxe YAML..."
+          echo "========================================"
+
+          find "${{ env.TEMPLATE_DIRECTORY }}" \
+            -type f \
+            \( -name "*.yaml" -o -name "*.yml" \) \
+            -print \
+            -exec yq eval '.' {} \;
+
+################################################################################
+#
+# CloudFormation Linter
+#
+################################################################################
+
+      - name: Run cfn-lint
+
+        run: |
+
+          echo "========================================"
+          echo "Executando cfn-lint..."
+          echo "========================================"
+
+          cfn-lint \
+            "${{ env.TEMPLATE_DIRECTORY }}"/*.yaml
+
+################################################################################
+#
+# AWS CloudFormation Validate Template
+#
+################################################################################
+
+      - name: Validate CloudFormation Templates
+
+        env:
+
+          AWS_DEFAULT_REGION: ${{ env.AWS_REGION }}
+
+        run: |
+
+          echo "========================================"
+          echo "CloudFormation Validate Template"
+          echo "========================================"
+
+          for template in "${{ env.TEMPLATE_DIRECTORY }}"/*.yaml
+          do
+
+            echo
+
+            echo "Validando: ${template}"
+
+            aws cloudformation validate-template \
+              --template-body file://"${template}"
+
+          done
+
+################################################################################
+#
+# Permissão dos Scripts
+#
+################################################################################
+
+      - name: Make Scripts Executable
+
+        run: |
+
+          chmod +x scripts/*.sh
+
+################################################################################
+#
+# Executar validate.sh
+#
+################################################################################
+
+      - name: Execute Validation Script
+
+        run: |
+
+          echo "========================================"
+          echo "Executando validate.sh"
+          echo "========================================"
+
+          ./scripts/validate.sh
+
+################################################################################
+#
+# ShellCheck
+#
+################################################################################
+
+      - name: Analyze Shell Scripts
+
+        run: |
+
+          echo "========================================"
+          echo "Executando ShellCheck"
+          echo "========================================"
+
+          shellcheck scripts/*.sh
+
+################################################################################
+#
+# Listar Arquivos Gerados
+#
+################################################################################
+
+      - name: Validation Report
+
+        if: always()
+
+        run: |
+
+          echo "========================================"
+
+          echo "Arquivos Gerados"
+
+          echo "========================================"
+
+          ls -lah
+
+          echo
+
+          ls -lah logs || true
+
+################################################################################
+#
+# Preparação dos Logs
+#
+################################################################################
+
+      - name: Prepare Logs
+
+        if: always()
+
+        run: |
+
+          mkdir -p artifacts
+
+          if [ -d logs ]
+          then
+
+            cp -r logs artifacts/
+
+          fi
+
+################################################################################
+#
+# Próxima Parte
+#
+# • Upload dos Artifacts
+# • GitHub Step Summary
+# • Estatísticas
+# • Resultado Final
+# • Documentação
+#
+################################################################################ 
+
+
+################################################################################
+#
+# Upload dos Artefatos
+#
+################################################################################
+
+      - name: Upload Validation Artifacts
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: ${{ env.ARTIFACT_NAME }}
+
+          path: |
+            artifacts/
+            logs/
+
+          retention-days: 30
+
+################################################################################
+#
+# GitHub Step Summary
+#
+################################################################################
+
+      - name: Generate Workflow Summary
+
+        if: always()
+
+        run: |
+
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+
+# AWS CloudFormation Validation Report
+
+## Projeto
+
+Implementando Infraestrutura Automatizada com AWS CloudFormation
+
+---
+
+## Validações executadas
+
+- ✅ YAML Syntax
+- ✅ CloudFormation Template Validation
+- ✅ cfn-lint
+- ✅ validate.sh
+- ✅ ShellCheck
+
+---
+
+## Ambiente
+
+| Item | Valor |
+|------|-------|
+| Runner | ${RUNNER_OS} |
+| Python | $(python --version) |
+| AWS CLI | $(aws --version) |
+| Região | ${{ env.AWS_REGION }} |
+
+---
+
+## Diretórios analisados
+
+- templates/
+- scripts/
+- .github/workflows/
+
+---
+
+## Resultado
+
+Todos os templates passaram pelas validações configuradas no pipeline.
+
+EOF
+
+################################################################################
+#
+# Estatísticas
+#
+################################################################################
+
+      - name: Workflow Statistics
+
+        if: always()
+
+        run: |
+
+          echo "==================================="
+
+          echo "Workflow concluído"
+
+          echo "==================================="
+
+          echo
+
+          echo "Templates analisados:"
+
+          find templates -name "*.yaml" | wc -l
+
+          echo
+
+          echo "Scripts Bash:"
+
+          find scripts -name "*.sh" | wc -l
+
+          echo
+
+          echo "Workflows GitHub:"
+
+          find .github/workflows -name "*.yml" | wc -l
+
+################################################################################
+#
+# Mensagem Final
+#
+################################################################################
+
+      - name: Success Message
+
+        if: success()
+
+        run: |
+
+          echo
+
+          echo "Todos os templates CloudFormation foram validados."
+
+          echo
+
+          echo "Pipeline executado com sucesso."
+
+################################################################################
+#
+# Mensagem de Falha
+#
+################################################################################
+
+      - name: Failure Message
+
+        if: failure()
+
+        run: |
+
+          echo
+
+          echo "Foram encontrados erros durante a validação."
+
+          echo
+
+          echo "Consulte os logs e os artefatos publicados."
+
+################################################################################
+#
+# Documentação
+#
+################################################################################
+#
+# Compatibilidade
+#
+# ✔ GitHub Actions
+# ✔ AWS CloudFormation
+# ✔ AWS CLI
+# ✔ cfn-lint
+# ✔ ShellCheck
+# ✔ Linux Ubuntu
+#
+################################################################################
+#
+# Boas Práticas Aplicadas
+#
+# ✔ Infrastructure as Code (IaC)
+# ✔ Continuous Integration (CI)
+# ✔ Shift Left Validation
+# ✔ Fail Fast
+# ✔ Static Analysis
+# ✔ Logging
+# ✔ Observabilidade
+# ✔ Reprodutibilidade
+# ✔ Modularização
+# ✔ Documentação
+#
+################################################################################
+#
+# Evoluções Futuras
+#
+# □ Integração com cfn-guard
+# □ Checkov
+# □ Trivy
+# □ CodeQL
+# □ Testes automatizados com TaskCat
+# □ Deploy automático para ambiente de homologação
+# □ Aprovação manual para produção
+# □ Notificações via Amazon SNS e Slack
+#
+################################################################################
+#
+# Projeto:
+#
+# Implementando Infraestrutura Automatizada
+# com AWS CloudFormation
+#
+# Formação AWS Cloud Foundations
+#
+# Estrutura inspirada nas metodologias de:
+#
+# 
+#   
+#
+# 
+#   
+#   
+#
+################################################################################
+#
+# Autor
+#
+# Sérgio Luiz dos Santos
+#
+# GitHub:
+# https://github.com/Santosdevbjj
+#
+################################################################################
+#
+# END OF FILE
+#
+################################################################################ 
+
+
+
+
